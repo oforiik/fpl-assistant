@@ -13,7 +13,6 @@ def form_stats():
         password=os.getenv("DB_PASSWORD"),
         # database=os.getenv("DB_NAME")
     )
-
     cursor = conn.cursor()
 
     # Create the database if it doesn't exist
@@ -30,6 +29,7 @@ def form_stats():
         id INT AUTO_INCREMENT PRIMARY KEY,
         Player VARCHAR(255),
         xA90 DECIMAL(10, 3),
+        Team VARCHAR(255),
         NPxG90_xA90 DECIMAL(10, 3),
         xGChain90 DECIMAL(10, 3),
         xGBuildup90 DECIMAL(10, 3)
@@ -38,11 +38,12 @@ def form_stats():
 
     def insert_player_data(player_data):
         """Insert player data into the MySQL table."""
-        sql = '''INSERT INTO form_stats (Player, xA90, NPxG90_xA90, xGChain90, xGBuildup90) 
-                VALUES (%s, %s, %s, %s, %s)'''
+        sql = '''INSERT INTO form_stats (Player, xA90, Team, NPxG90_xA90, xGChain90, xGBuildup90) 
+                VALUES (%s, %s, %s, %s, %s, %s)'''
         values = (
             str(player_data["Player"]),
             float(player_data["xA90"]),
+            str(player_data["Team"]),
             float(player_data["NPxG90_xA90"]),
             float(player_data["xGChain90"]),
             float(player_data["xGBuildup90"])

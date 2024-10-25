@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 import streamlit as st
 import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import variance_inflation_factor
@@ -10,10 +11,10 @@ from statsmodels.graphics.gofplots import qqplot
 
 # Establish connection to MySQL
 conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="Ihavesevenas123",
-    database="stats"
+    host=os.getenv("DB_HOST"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    database=os.getenv("DB_NAME")
 )
 
 st.title('Goal Involvement OLS Model')

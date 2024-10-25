@@ -1,0 +1,16 @@
+# Ignore environment folder
+sql/
+
+# Ignore __pycache__ and other temporary Python files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Ignore system files
+.DS_Store
+.idea/
+.vscode/

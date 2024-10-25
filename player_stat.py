@@ -1,19 +1,18 @@
+import os
 import mysql.connector
 from understatapi import UnderstatClient
 import asyncio
-import schedule
-import time
 
-league = input("League: ")
-year = input("League Season: ")
 
-def run_season_stats():
+# league = input("League: ")
+# year = input("League Season: ")
+def season_stats():
     # Step 1: Connect to the MySQL database
     conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="Ihavesevenas123",
-        # database="{year}_{league}_stats2_db"  # Ensure you're connecting to the correct database
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        # database=os.getenv("DB_NAME")
     )
 
     cursor = conn.cursor()
@@ -21,7 +20,7 @@ def run_season_stats():
     # Create the database if it doesn't exist
     cursor.execute("CREATE DATABASE IF NOT EXISTS stats")
     cursor.execute("USE stats")
-    
+
     league = "EPL"
     year = "2024"
 
@@ -120,10 +119,4 @@ def run_season_stats():
     cursor.close()
     conn.close()
 
-# Schedule the job to run every day at a specific time, e.g., noon(12:00)
-schedule.every().day.at("11:00").do(run_season_stats)
-
-# Keep the script running to check for scheduled jobs
-while True:
-    schedule.run_pending()
-    time.sleep(60)  # Check every minute
+season_stats()

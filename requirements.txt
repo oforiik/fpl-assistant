@@ -1,8 +1,9 @@
-understat 
-aiohttp 
+understat
 mysql-connector-python 
 pandas
 openpyxl
 sqlalchemy
 statsmodels
 schedule
+streamlit==1.15.2
+aiohttp==3.8.1

@@ -4,6 +4,7 @@ pandas
 openpyxl
 sqlalchemy
 statsmodels
+matplotlib
 schedule
 streamlit
 aiohttp==3.7.4

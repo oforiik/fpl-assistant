@@ -2,18 +2,10 @@ import re
 import os
 import time
 import mysql.connector
-import asyncio
 from playwright.sync_api import Playwright, sync_playwright
 
-def form_stats():
+def player_stats():
     # Step 1: Connect to the MySQL database
-    # conn = mysql.connector.connect(
-    #     host=os.getenv("DB_HOST"),
-    #     user=os.getenv("DB_USER"),
-    #     password=os.getenv("DB_PASSWORD"),
-    #     # database=os.getenv("DB_NAME")
-    # )
-    
     conn = mysql.connector.connect(
         host="localhost",
         user="root",
@@ -25,18 +17,23 @@ def form_stats():
     # Create the database if it doesn't exist
     cursor.execute("CREATE DATABASE IF NOT EXISTS stats")
     cursor.execute("USE stats")
-
-
+    
+    league = "EPL"
+    year = "2024"
+    
     cursor.execute(f'''
-    DROP TABLE IF EXISTS form_stats
+    DROP TABLE IF EXISTS {year}_{league}_stats
     ''')
 
+    # Create the table for player stats if it doesn't exist
     cursor.execute(f'''
-    CREATE TABLE IF NOT EXISTS form_stats (
+    CREATE TABLE IF NOT EXISTS {year}_{league}_stats (
         id INT AUTO_INCREMENT PRIMARY KEY,
         Player VARCHAR(255),
-        xA90 DECIMAL(10, 3),
         Team VARCHAR(255),
+        Minutes INT,
+        NpGI90 DECIMAL(10, 3),  # Goals + Assists per 90
+        xA90 DECIMAL(10, 3),
         NPxG90_xA90 DECIMAL(10, 3),
         xGChain90 DECIMAL(10, 3),
         xGBuildup90 DECIMAL(10, 3)
@@ -45,19 +42,20 @@ def form_stats():
 
     def insert_player_data(player_data):
         """Insert player data into the MySQL table."""
-        sql = '''INSERT INTO form_stats (Player, xA90, Team, NPxG90_xA90, xGChain90, xGBuildup90) 
-                VALUES (%s, %s, %s, %s, %s, %s)'''
+        sql = f'''INSERT INTO {year}_{league}_stats (Player, Team, Minutes, NpGI90, xA90, NPxG90_xA90, xGChain90, xGBuildup90) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'''
         values = (
             str(player_data["Player"]),
-            float(player_data["xA90"]),
             str(player_data["Team"]),
+            int(player_data["Minutes"]),
+            float(player_data["NpGI90"]),
+            float(player_data["xA90"]),
             float(player_data["NPxG90_xA90"]),
             float(player_data["xGChain90"]),
             float(player_data["xGBuildup90"])
         )
         cursor.execute(sql, values)
         conn.commit()
-        
 
     def run(playwright: Playwright) -> None:
         browser = playwright.chromium.launch(headless=True)
@@ -67,21 +65,21 @@ def form_stats():
         # Navigate to the page
         page.goto("https://understat.com/league/EPL")
         
-        # Perform the necessary steps to filter and display the columns
+        # Perform necessary steps to filter and display the columns
         page.evaluate("document.querySelector('#league-players').scrollIntoView();")
         page.locator("#league-players").get_by_role("button").click()
         page.locator("#league-players > .table-popup > .table-popup-body > .table-options > div > .row-display > label").first.click()
         page.locator("#league-players > .table-popup > .table-popup-body > .table-options > div:nth-child(6) > .row-display > label").click()
-        page.locator("#league-players > .table-popup > .table-popup-body > .table-options > div:nth-child(5) > .row-filter > input").first.click()
-        page.locator("#league-players > .table-popup > .table-popup-body > .table-options > div:nth-child(5) > .row-filter > input").first.fill("180")
-        page.locator("#league-players > .table-popup > .table-popup-body > .table-options > div:nth-child(8) > .row-display > label").click()
-        page.locator("#league-players > .table-popup > .table-popup-body > .table-options > div:nth-child(9) > .row-display > label").click()
+        page.locator("#league-players > .table-popup > .table-popup-body > .table-options > div:nth-child(7) > .row-display > label").click()
         page.locator("#league-players > .table-popup > .table-popup-body > .table-options > div:nth-child(11) > .row-display > label").click()
         page.locator("#league-players > .table-popup > .table-popup-body > .table-options > div:nth-child(14) > .row-display > label").click()
         page.locator("#league-players > .table-popup > .table-popup-body > .table-options > div:nth-child(15) > .row-display > label").click()
         page.locator("#league-players > .table-popup > .table-popup-body > .table-options > div:nth-child(18) > .row-display > label").click()
         page.locator("#league-players > .table-popup > .table-popup-body > .table-options > div:nth-child(19) > .row-display > label").click()
         page.locator("div:nth-child(20) > .row-display > label").click()
+        page.locator("#league-players > .table-popup > .table-popup-body > .table-options > div:nth-child(9) > .row-display > label").click()
+        # (Additional clicks for filters go here as needed)
+        
         time.sleep(1)  # Wait for the table to be updated
         page.locator("#league-players").get_by_text("Apply").click()
         page.locator("div").filter(has_text=re.compile(r"^All games$")).click()
@@ -105,18 +103,29 @@ def form_stats():
             row_count = rows.count()
             for i in range(row_count):
                 row = rows.nth(i)
-                player = row.locator("td:nth-child(1)").inner_text(timeout=5000)  # Column: Player
-                team = row.locator("td:nth-child(2)").inner_text(timeout=5000)  # Column: Team
-                xA90 = row.locator("td:nth-child(6)").inner_text(timeout=5000)  # Column: xA90
-                nPxG90xA90 = row.locator("td:nth-child(7)").inner_text(timeout=5000)  # Column: NPxG90_xA90
-                xgchain90 = row.locator("td:nth-child(8)").inner_text(timeout=5000)  # Column: xGChain90
-                xgbuildup90 = row.locator("td:nth-child(9)").inner_text(timeout=5000)  # Column: xGBuildup90
+                # Convert data types
+                player = row.locator("td:nth-child(1)").inner_text(timeout=5000)
+                team = row.locator("td:nth-child(2)").inner_text(timeout=5000)
+                minutes = row.locator("td:nth-child(4)").inner_text(timeout=5000)
+                npg = row.locator("td:nth-child(5)").inner_text(timeout=5000)
+                assists = row.locator("td:nth-child(6)").inner_text(timeout=5000)
+                xA90 = row.locator("td:nth-child(8)").inner_text(timeout=5000)
+                nPxG90xA90 = row.locator("td:nth-child(9)").inner_text(timeout=5000)
+                xgchain90 = row.locator("td:nth-child(10)").inner_text(timeout=5000)
+                xgbuildup90 = row.locator("td:nth-child(11)").inner_text(timeout=5000)
                 
+                # Calculate NpGI90 (Goals + Assists per 90 minutes)
+                
+
+                # Append player data
+            
                 if player != "":
                     players.append({
                         "Player": player,
-                        "xA90": xA90,
                         "Team": team,
+                        "Minutes": minutes,
+                        "NpGI90": npg + assists,
+                        "xA90": xA90,
                         "NPxG90_xA90": nPxG90xA90,
                         "xGChain90": xgchain90,
                         "xGBuildup90": xgbuildup90
@@ -148,4 +157,4 @@ def form_stats():
     # Close the MySQL connection
     conn.close()
 
-form_stats()
+player_stats()

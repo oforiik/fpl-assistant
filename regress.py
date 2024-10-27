@@ -22,22 +22,22 @@ st.title('Goal Involvement OLS Model')
 # Load the table using a SQL query
 query = "SELECT * FROM 2024_EPL_stats"
 df = pd.read_sql_query(query, con=conn)
-threshold = df['minutes'].max() * 0.6
-df = df[df['minutes'] >= threshold]
+threshold = df['Minutes'].max() * 0.6
+df = df[df['Minutes'] >= threshold]
 
 # Data preprocessing
+df['xGChain_xGBuildup'] = df['xGChain90'] - df['xGBuildup90']
+df['SP_Chain_Buildup'] = (df['NPxG90_xA90'] - df['xGChain_xGBuildup']) / df['NPxG90_xA90']
 df['SP_Chain_Buildup_sq'] = df['SP_Chain_Buildup'] ** 2
-df['xG_shot'] = df['npxG90'] / df['shots90']
-df['xG_shotXshots90'] = df['xG_shot'] * df['shots90']
 
 df = df.replace([np.inf, -np.inf], np.nan)
 df = df.dropna()
 
 # Dependent variable (Y)
-y = df['npGI_per_90']
+y = df['NpGI90']
 
 # Independent variables (X)
-X = df[['xGChain_xGBuildup', 'SP_Chain_Buildup','xA_per_90']]
+X = df[['xGChain_xGBuildup', 'SP_Chain_Buildup','xA90']]
 
 # Add constant to the independent variables
 X = sm.add_constant(X)
@@ -58,8 +58,8 @@ residuals = model.resid
 
 plt.figure(figsize=(10, 6))
 sns.scatterplot(x=fitted_values, y=y)
-plt.xlabel('Fitted Values (Predicted npGI_per_90)')
-plt.ylabel('Actual Values (npGI_per_90)')
+plt.xlabel('Fitted Values (Predicted NpGI90)')
+plt.ylabel('Actual Values (NpGI90)')
 plt.title('Fitted vs Actual Values')
 with st.expander('Fitted vs Actual Values'):
     st.pyplot(plt)
@@ -69,7 +69,7 @@ with st.expander('Fitted vs Actual Values'):
 plt.figure(figsize=(10, 6))
 sns.scatterplot(x=fitted_values, y=residuals)
 plt.axhline(0, color='red', linestyle='--')
-plt.xlabel('Fitted Values (Predicted npGI_per_90)')
+plt.xlabel('Fitted Values (Predicted NpGI90)')
 plt.ylabel('Residuals')
 plt.title('Residual Plot')
 with st.expander('Residual Plot'):
@@ -90,8 +90,8 @@ st.header('Goal Involvement Calculator')
 xgchain = st.number_input('Enter xGChain90:', min_value=0.0, step=0.01)
 xgbuildup = st.number_input('Enter xGBuildup90:', min_value=0.0, step=0.01)
 npxG90 = st.number_input('Enter npxG90:', min_value=0.0, step=0.01)
-xa_per_90 = st.number_input('Enter xA_per_90:', min_value=0.0, step=0.01)
-npxG90_xA90 = npxG90 + xa_per_90
+xA90 = st.number_input('Enter xA90:', min_value=0.0, step=0.01)
+npxG90_xA90 = npxG90 + xA90
 Sp_Chain = 0
 if npxG90_xA90 != 0:
     Sp_Chain = (npxG90_xA90 - xgchain + xgbuildup)/npxG90_xA90
@@ -103,13 +103,13 @@ input_data = pd.DataFrame({
     'const': [1],  # Adding constant for the intercept
     'xGChain_xGBuildup': [xgchain - xgbuildup],
     'SP_Chain_Buildup': [Sp_Chain],
-    'xA_per_90': [xa_per_90]
+    'xA90': [xA90]
 })
 
-# When the user inputs values, use the model to predict npGI_per_90
-if st.button('Predict npGI_per_90'):
+# When the user inputs values, use the model to predict NpGI90
+if st.button('Predict NpGI90'):
     predicted_npgi = model.predict(input_data)[0]  # Use the regression model for prediction
-    st.success(f'The predicted npGI_per_90 is: {predicted_npgi:.2f}')
+    st.success(f'The predicted NpGI90 is: {predicted_npgi:.2f}')
 
 
 import pandas as pd
@@ -133,7 +133,7 @@ st.subheader('Player Ranking Based on Predicted Goal Involvements')
 query = "SELECT * FROM form_stats"
 df = pd.read_sql_query(query, con=conn)
 df = df.drop_duplicates(subset=['Player'], keep='first')
-# Compute npxG90 (non-penalty expected goals per 90 minutes)
+# Compute npxG90 (non-penalty expected goals per 90 Minutes)
 df['npxG90'] = df['NPxG90_xA90'] - df['xA90']  # Derived as NPxG90 - xA90
 df['xGChain_xGBuildup'] = df['xGChain90'] - df['xGBuildup90']
 df['SP_Chain_Buildup'] = (df['NPxG90_xA90'] - df['xGChain_xGBuildup']) / df['NPxG90_xA90']
@@ -147,16 +147,16 @@ X = df[['xGChain_xGBuildup', 'SP_Chain_Buildup', 'xA90']]
 # Add constant term for the OLS model
 X = sm.add_constant(X)
 
-# Dependent variable (Y) is npGI_per_90 (assumed to be in the dataset)
-y = df['NPxG90_xA90']  # npGI_per_90 can be predicted using xGChain, xGBuildup, xA
+# Dependent variable (Y) is NpGI90 (assumed to be in the dataset)
+y = df['NPxG90_xA90']  # NpGI90 can be predicted using xGChain, xGBuildup, xA
 
 # Fit the OLS model
 model = sm.OLS(y, X).fit()
 
-# Use the model to predict npGI_per_90 for each player
+# Use the model to predict NpGI90 for each player
 df['NPGI Per 90'] = model.predict(X)
 
-# Rank players based on predicted npGI_per_90
+# Rank players based on predicted NpGI90
 df['Rank'] = df['NPGI Per 90'].rank(ascending=False)
 
 # Sort the players by rank

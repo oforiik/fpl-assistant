@@ -5,6 +5,7 @@ openpyxl
 sqlalchemy
 statsmodels
 matplotlib
+seaborn
 schedule
 streamlit
 aiohttp==3.7.4

@@ -5,5 +5,5 @@ openpyxl
 sqlalchemy
 statsmodels
 schedule
-streamlit==1.15.2
+streamlit
 aiohttp==3.7.4

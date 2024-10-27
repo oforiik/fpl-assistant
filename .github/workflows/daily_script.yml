@@ -25,5 +25,5 @@ jobs:
 
       - name: Run daily script
         run: |
-          python playwrit.py
+          python player_stats1.py
           python player_stats.py

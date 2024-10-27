@@ -7,11 +7,12 @@ from playwright.sync_api import Playwright, sync_playwright
 def player_stats():
     # Step 1: Connect to the MySQL database
     conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="Ihavesevenas123",
-        database="stats"
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        # database=os.getenv("DB_NAME")
     )
+    
     cursor = conn.cursor()
 
     # Create the database if it doesn't exist

@@ -6,4 +6,4 @@ sqlalchemy
 statsmodels
 schedule
 streamlit==1.15.2
-aiohttp==3.8.1
+https://github.com/Ofekmeister/aiohttp/releases/download/v3.8.1/aiohttp-3.8.1-cp39-cp39-manylinux1_x86_64.whl

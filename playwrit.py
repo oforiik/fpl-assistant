@@ -4,55 +4,41 @@ import time
 import mysql.connector
 import asyncio
 from playwright.sync_api import Playwright, sync_playwright
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
 
 def form_stats():
-    # Step 1: Connect to the MySQL database
-    conn = mysql.connector.connect(
-        host=os.getenv("DB_HOST"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        # database=os.getenv("DB_NAME")
-    )
-    
-    cursor = conn.cursor()
+    # Step 1: Set up SQLAlchemy engine for the PostgreSQL connection
+    conn_str = os.getenv("DATABASE_URL")
+    engine = create_engine(conn_str)
 
-    # Create the database if it doesn't exist
-    cursor.execute("CREATE DATABASE IF NOT EXISTS stats")
-    cursor.execute("USE stats")
-
-
-    cursor.execute(f'''
-    DROP TABLE IF EXISTS form_stats
-    ''')
-
-    cursor.execute(f'''
-    CREATE TABLE IF NOT EXISTS form_stats (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        Player VARCHAR(255),
-        xA90 DECIMAL(10, 3),
-        Team VARCHAR(255),
-        NPxG90_xA90 DECIMAL(10, 3),
-        xGChain90 DECIMAL(10, 3),
-        xGBuildup90 DECIMAL(10, 3)
-    )
-    ''')
-
-    def insert_player_data(player_data):
-        """Insert player data into the MySQL table."""
-        sql = '''INSERT INTO form_stats (Player, xA90, Team, NPxG90_xA90, xGChain90, xGBuildup90) 
-                VALUES (%s, %s, %s, %s, %s, %s)'''
-        values = (
-            str(player_data["Player"]),
-            float(player_data["xA90"]),
-            str(player_data["Team"]),
-            float(player_data["NPxG90_xA90"]),
-            float(player_data["xGChain90"]),
-            float(player_data["xGBuildup90"])
-        )
-        cursor.execute(sql, values)
-        conn.commit()
+    # Create the database table if it doesn't exist
+    with engine.connect() as conn:
+        conn.execute(text("DROP TABLE IF EXISTS form_stats"))
         
+        conn.execute(text('''
+            CREATE TABLE IF NOT EXISTS form_stats (
+                id SERIAL PRIMARY KEY,
+                Player VARCHAR(255),
+                xA90 DECIMAL(10, 3),
+                Team VARCHAR(255),
+                NPxG90_xA90 DECIMAL(10, 3),
+                xGChain90 DECIMAL(10, 3),
+                xGBuildup90 DECIMAL(10, 3)
+            )
+        '''))
 
+    # Function to insert player data into the database
+    def insert_player_data(player_data):
+        """Insert player data into the form_stats table."""
+        try:
+            with engine.connect() as conn:
+                sql = text('''INSERT INTO form_stats (Player, xA90, Team, NPxG90_xA90, xGChain90, xGBuildup90) 
+                              VALUES (:Player, :xA90, :Team, :NPxG90_xA90, :xGChain90, :xGBuildup90)''')
+                conn.execute(sql, **player_data)
+        except SQLAlchemyError as e:
+            print(f"Error inserting data: {e}")
+            
     def run(playwright: Playwright) -> None:
         browser = playwright.chromium.launch(headless=True)
         context = browser.new_context()
@@ -140,6 +126,6 @@ def form_stats():
         run(playwright)
 
     # Close the MySQL connection
-    conn.close()
+    conn_str.close()
 
 form_stats()

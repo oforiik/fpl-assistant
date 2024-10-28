@@ -1,62 +1,47 @@
 import re
 import os
 import time
-import mysql.connector
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
 from playwright.sync_api import Playwright, sync_playwright
 
 def player_stats():
-    # Step 1: Connect to the MySQL database
-    conn = mysql.connector.connect(
-        host=os.getenv("DB_HOST"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        # database=os.getenv("DB_NAME")
-    )
-    
-    cursor = conn.cursor()
+    # Step 1: Set up SQLAlchemy engine for PostgreSQL connection
+    conn_str = os.getenv("DATABASE_URL")  # Get the PostgreSQL connection URL from environment variables
+    engine = create_engine(conn_str)
 
-    # Create the database if it doesn't exist
-    cursor.execute("CREATE DATABASE IF NOT EXISTS stats")
-    cursor.execute("USE stats")
-    
     league = "EPL"
     year = "2024"
-    
-    cursor.execute(f'''
-    DROP TABLE IF EXISTS {year}_{league}_stats
-    ''')
 
     # Create the table for player stats if it doesn't exist
-    cursor.execute(f'''
-    CREATE TABLE IF NOT EXISTS {year}_{league}_stats (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        Player VARCHAR(255),
-        Team VARCHAR(255),
-        Minutes INT,
-        NpGI90 DECIMAL(10, 3),  # Goals + Assists per 90
-        xA90 DECIMAL(10, 3),
-        NPxG90_xA90 DECIMAL(10, 3),
-        xGChain90 DECIMAL(10, 3),
-        xGBuildup90 DECIMAL(10, 3)
-    )
-    ''')
+    with engine.connect() as conn:
+        conn.execute(text(f"DROP TABLE IF EXISTS {year}_{league}_stats"))
+        
+        conn.execute(text(f'''
+            CREATE TABLE IF NOT EXISTS {year}_{league}_stats (
+                id SERIAL PRIMARY KEY,
+                Player VARCHAR(255),
+                Team VARCHAR(255),
+                Minutes INT,
+                NpGI90 DECIMAL(10, 3),  -- Goals + Assists per 90
+                xA90 DECIMAL(10, 3),
+                NPxG90_xA90 DECIMAL(10, 3),
+                xGChain90 DECIMAL(10, 3),
+                xGBuildup90 DECIMAL(10, 3)
+            )
+        '''))
 
+    # Function to insert player data into the database
     def insert_player_data(player_data):
-        """Insert player data into the MySQL table."""
-        sql = f'''INSERT INTO {year}_{league}_stats (Player, Team, Minutes, NpGI90, xA90, NPxG90_xA90, xGChain90, xGBuildup90) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'''
-        values = (
-            str(player_data["Player"]),
-            str(player_data["Team"]),
-            int(player_data["Minutes"]),
-            float(player_data["NpGI90"]),
-            float(player_data["xA90"]),
-            float(player_data["NPxG90_xA90"]),
-            float(player_data["xGChain90"]),
-            float(player_data["xGBuildup90"])
-        )
-        cursor.execute(sql, values)
-        conn.commit()
+        """Insert player data into the PostgreSQL table."""
+        try:
+            with engine.connect() as conn:
+                sql = text(f'''INSERT INTO {year}_{league}_stats 
+                               (Player, Team, Minutes, NpGI90, xA90, NPxG90_xA90, xGChain90, xGBuildup90) 
+                               VALUES (:Player, :Team, :Minutes, :NpGI90, :xA90, :NPxG90_xA90, :xGChain90, :xGBuildup90)''')
+                conn.execute(sql, **player_data)
+        except SQLAlchemyError as e:
+            print(f"Error inserting data: {e}")
 
     def run(playwright: Playwright) -> None:
         browser = playwright.chromium.launch(headless=True)

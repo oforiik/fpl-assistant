@@ -5,23 +5,30 @@ import streamlit as st
 import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 import mysql.connector
+from sqlalchemy import create_engine
 import matplotlib.pyplot as plt
 import seaborn as sns
 from statsmodels.graphics.gofplots import qqplot
 
-# Establish connection to MySQL
-conn = mysql.connector.connect(
-    host=os.getenv("DB_HOST"),
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    database=os.getenv("DB_NAME")
-)
+# # Establish connection to MySQL
+# conn = mysql.connector.connect(
+#     host=os.getenv("DB_HOST"),
+#     user=os.getenv("DB_USER"),
+#     password=os.getenv("DB_PASSWORD"),
+#     database=os.getenv("DB_NAME")
+# )
+
+# Vercel Setup
+conn_str = os.getenv("DATABASE_URL")
+
+# Create an SQLAlchemy engine
+engine = create_engine(conn_str)
 
 st.title('Goal Involvement OLS Model')
 
 # Load the table using a SQL query
 query = "SELECT * FROM 2024_EPL_stats"
-df = pd.read_sql_query(query, con=conn)
+df = pd.read_sql_query(query, con=engine)
 threshold = df['Minutes'].max() * 0.6
 df = df[df['Minutes'] >= threshold]
 

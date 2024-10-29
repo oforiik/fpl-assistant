@@ -9,7 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 def form_stats():
     # Step 1: Set up SQLAlchemy engine for the PostgreSQL connection
-    conn_str = os.getenv("DATABASE_URL")
+    conn_str = os.getenv("DATABASE_URL").replace("postgres://", "postgresql://", 1)
     engine = create_engine(conn_str)
 
     # Create the database table if it doesn't exist

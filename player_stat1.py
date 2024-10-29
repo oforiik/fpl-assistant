@@ -7,7 +7,7 @@ from playwright.sync_api import Playwright, sync_playwright
 
 def player_stats():
     # Step 1: Set up SQLAlchemy engine for PostgreSQL connection
-    conn_str = os.getenv("DATABASE_URL")  # Get the PostgreSQL connection URL from environment variables
+    conn_str = os.getenv("DATABASE_URL").replace("postgres://", "postgresql://", 1)
     engine = create_engine(conn_str)
 
     league = "EPL"

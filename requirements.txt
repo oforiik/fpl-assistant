@@ -6,6 +6,7 @@ sqlalchemy
 statsmodels
 matplotlib
 seaborn
+psycopg2-binary
 schedule
 streamlit
 aiohttp==3.7.4

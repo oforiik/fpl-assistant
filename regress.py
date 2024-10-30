@@ -4,24 +4,38 @@ import os
 import streamlit as st
 import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import variance_inflation_factor
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
 import matplotlib.pyplot as plt
 import seaborn as sns
 from statsmodels.graphics.gofplots import qqplot
 
-# Vercel Setup - Connect using SQLAlchemy
-conn_str = os.getenv("DATABASE_URL")
-engine = create_engine(conn_str)
+def EPL_stats():
+    # Set up SQLAlchemy engine for PostgreSQL connection
+    conn_str = os.getenv("DATABASE_URL")
+    engine = create_engine(conn_str)
 
-league = "EPL"
-year = "2024"
-table_name = f'public."{year}_{league}_stats"'
-form_name = f'public."form_stats"'
+    league = "EPL"
+    year = "2024"
+    table_name = f'public."{year}_{league}_stats"' 
+    with engine.begin() as conn:
+        try:
+            query = text(f'SELECT * FROM {table_name}')
+            df = pd.read_sql_query(query, conn)
+            print("Data loaded into DataFrame successfully.")
+            return df  # Returns the DataFrame for further use
+        except SQLAlchemyError as e:
+            print("Error accessing table data:", e)
+            return None
+        
+        
+    
 st.title('Goal Involvement OLS Model')
 
 # Load the table using a SQL query
-query_1 = f"SELECT * FROM {table_name}"
-df = pd.read_sql_query(query_1, con=engine)  # Use `engine` for the connection
+df = EPL_stats()
+# Use `engine` for the connection
+df = df.drop_duplicates(subset=['Player'], keep='first')
 threshold = df['Minutes'].max() * 0.6
 df = df[df['Minutes'] >= threshold]
 
@@ -110,8 +124,24 @@ st.divider()
 st.subheader('Player Ranking Based on Predicted Goal Involvements')
 
 # Query the database to get player stats
-query_2 = f"SELECT * FROM {form_name}"
-df = pd.read_sql_query(query_2, con=engine)  # Use `engine` for the connection
+def form_stats():
+    # Set up SQLAlchemy engine for PostgreSQL connection
+    conn_str = os.getenv("DATABASE_URL")
+    engine = create_engine(conn_str)
+
+    table_name = 'public."form_stats"' 
+    with engine.begin() as conn:
+        try:
+            query = text(f'SELECT * FROM {table_name}')
+            df = pd.read_sql_query(query, conn)
+            print("Data loaded into DataFrame successfully.")
+            return df  # Returns the DataFrame for further use
+        except SQLAlchemyError as e:
+            print("Error accessing table data:", e)
+            return None
+        
+        
+df = form_stats()
 df = df.drop_duplicates(subset=['Player'], keep='first')
 
 # Data processing for ranking

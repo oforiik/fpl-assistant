@@ -4,29 +4,20 @@ import os
 import streamlit as st
 import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import variance_inflation_factor
-import mysql.connector
 from sqlalchemy import create_engine
 import matplotlib.pyplot as plt
 import seaborn as sns
 from statsmodels.graphics.gofplots import qqplot
 
-# # Establish connection to MySQL
-# conn = mysql.connector.connect(
-#     host=os.getenv("DB_HOST"),
-#     user=os.getenv("DB_USER"),
-#     password=os.getenv("DB_PASSWORD"),
-#     database=os.getenv("DB_NAME")
-# )
-
-# Vercel Setup
+# Vercel Setup - Connect using SQLAlchemy
 conn_str = os.getenv("DATABASE_URL")
 engine = create_engine(conn_str)
 
 st.title('Goal Involvement OLS Model')
 
 # Load the table using a SQL query
-query = "SELECT * FROM 2024_EPL_stats"
-df = pd.read_sql_query(query, con=engine)
+query_1 = "SELECT * FROM 2024_EPL_stats"
+df = pd.read_sql_query(query_1, con=engine)  # Use `engine` for the connection
 threshold = df['Minutes'].max() * 0.6
 df = df[df['Minutes'] >= threshold]
 
@@ -42,7 +33,7 @@ df = df.dropna()
 y = df['NpGI90']
 
 # Independent variables (X)
-X = df[['xGChain_xGBuildup', 'SP_Chain_Buildup','xA90']]
+X = df[['xGChain_xGBuildup', 'SP_Chain_Buildup', 'xA90']]
 
 # Add constant to the independent variables
 X = sm.add_constant(X)
@@ -57,7 +48,6 @@ st.divider()
 st.header('OLS Model Graphs')
 
 # Fitted vs Actual Plot
-# st.subheader('Fitted vs Actual Values')
 fitted_values = model.fittedvalues
 residuals = model.resid
 
@@ -70,7 +60,6 @@ with st.expander('Fitted vs Actual Values'):
     st.pyplot(plt)
 
 # Residual Plot
-# st.subheader('Residual Plot')
 plt.figure(figsize=(10, 6))
 sns.scatterplot(x=fitted_values, y=residuals)
 plt.axhline(0, color='red', linestyle='--')
@@ -81,7 +70,6 @@ with st.expander('Residual Plot'):
     st.pyplot(plt)
 
 # QQ Plot
-# st.subheader('QQ Plot')
 plt.figure(figsize=(10, 6))
 qqplot(residuals, line='s')
 plt.title('QQ Plot of Residuals')
@@ -99,9 +87,7 @@ xA90 = st.number_input('Enter xA90:', min_value=0.0, step=0.01)
 npxG90_xA90 = npxG90 + xA90
 Sp_Chain = 0
 if npxG90_xA90 != 0:
-    Sp_Chain = (npxG90_xA90 - xgchain + xgbuildup)/npxG90_xA90
-    
-
+    Sp_Chain = (npxG90_xA90 - xgchain + xgbuildup) / npxG90_xA90
 
 # Create a DataFrame for the input
 input_data = pd.DataFrame({
@@ -116,30 +102,16 @@ if st.button('Predict NpGI90'):
     predicted_npgi = model.predict(input_data)[0]  # Use the regression model for prediction
     st.success(f'The predicted NpGI90 is: {predicted_npgi:.2f}')
 
-
-import pandas as pd
-import streamlit as st
-import statsmodels.api as sm
-import mysql.connector
-
-# MySQL connection setup
-conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="Ihavesevenas123",
-    database="stats"
-)
-
 st.divider()
 st.subheader('Player Ranking Based on Predicted Goal Involvements')
 
-
 # Query the database to get player stats
-query = "SELECT * FROM form_stats"
-df = pd.read_sql_query(query, con=conn)
+query_2 = "SELECT * FROM form_stats"
+df = pd.read_sql_query(query_2, con=engine)  # Use `engine` for the connection
 df = df.drop_duplicates(subset=['Player'], keep='first')
-# Compute npxG90 (non-penalty expected goals per 90 Minutes)
-df['npxG90'] = df['NPxG90_xA90'] - df['xA90']  # Derived as NPxG90 - xA90
+
+# Data processing for ranking
+df['npxG90'] = df['NPxG90_xA90'] - df['xA90']
 df['xGChain_xGBuildup'] = df['xGChain90'] - df['xGBuildup90']
 df['SP_Chain_Buildup'] = (df['NPxG90_xA90'] - df['xGChain_xGBuildup']) / df['NPxG90_xA90']
 
@@ -152,7 +124,7 @@ X = df[['xGChain_xGBuildup', 'SP_Chain_Buildup', 'xA90']]
 # Add constant term for the OLS model
 X = sm.add_constant(X)
 
-# Dependent variable (Y) is NpGI90 (assumed to be in the dataset)
+# Dependent variable (Y) is NpGI90
 y = df['NPxG90_xA90']  # NpGI90 can be predicted using xGChain, xGBuildup, xA
 
 # Fit the OLS model

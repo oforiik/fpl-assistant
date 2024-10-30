@@ -14,6 +14,22 @@
             "username": "root",
             "connectionTimeout": 30,
             "askForPassword": true
+        },
+        {
+            "pgOptions": {
+                "ssl": {
+                    "rejectUnauthorized": true
+                }
+            },
+            "previewLimit": 50,
+            "server": "ep-sweet-king-a2z7mdti.eu-central-1.aws.neon.tech",
+            "port": 5432,
+            "askForPassword": true,
+            "driver": "PostgreSQL",
+            "database": "verceldb",
+            "name": "Vercel PostgreSQL",
+            "username": "default",
+            "connectionTimeout": 30
         }
     ]
 }

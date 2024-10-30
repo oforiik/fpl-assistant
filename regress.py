@@ -19,7 +19,7 @@ from statsmodels.graphics.gofplots import qqplot
 # )
 
 # Vercel Setup
-conn_str = os.getenv("DATABASE_URL").replace("postgres://", "postgresql://", 1)
+conn_str = os.getenv("DATABASE_URL")
 engine = create_engine(conn_str)
 
 st.title('Goal Involvement OLS Model')

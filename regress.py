@@ -13,10 +13,14 @@ from statsmodels.graphics.gofplots import qqplot
 conn_str = os.getenv("DATABASE_URL")
 engine = create_engine(conn_str)
 
+league = "EPL"
+year = "2024"
+table_name = f'public."{year}_{league}_stats"'
+form_name = f'public."form_stats"'
 st.title('Goal Involvement OLS Model')
 
 # Load the table using a SQL query
-query_1 = "SELECT * FROM 2024_EPL_stats"
+query_1 = f"SELECT * FROM {table_name}"
 df = pd.read_sql_query(query_1, con=engine)  # Use `engine` for the connection
 threshold = df['Minutes'].max() * 0.6
 df = df[df['Minutes'] >= threshold]
@@ -106,7 +110,7 @@ st.divider()
 st.subheader('Player Ranking Based on Predicted Goal Involvements')
 
 # Query the database to get player stats
-query_2 = "SELECT * FROM form_stats"
+query_2 = f"SELECT * FROM {form_name}"
 df = pd.read_sql_query(query_2, con=engine)  # Use `engine` for the connection
 df = df.drop_duplicates(subset=['Player'], keep='first')
 

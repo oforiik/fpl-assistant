@@ -1,53 +1,26 @@
-import os
 import re
 import time
-from sqlalchemy import create_engine, text
-from sqlalchemy.exc import SQLAlchemyError
+import pandas as pd
 from playwright.sync_api import Playwright, sync_playwright
 
 def form_stats():
-    # Set up SQLAlchemy engine for the PostgreSQL connection
-    conn_str = os.getenv("DATABASE_URL")
-    engine = create_engine(conn_str)
-    table_name = 'public."form_stats"'  # Explicitly target the `public` schema
+    # Define the CSV file path (using a relative path for GitHub compatibility)
+    csv_file_path = "data/form_stats.csv"  # Ensure the `data` directory exists or adjust the path
 
-    # Create the table for player stats if it doesn't exist
-    with engine.begin() as conn:  # Using `begin()` to ensure transaction commit
-        try:
-            # Drop the table if it exists
-            print(f"Attempting to drop table {table_name} if it exists.")
-            conn.execute(text(f'DROP TABLE IF EXISTS {table_name}'))
-            print(f"Table {table_name} dropped (if it existed).")
-            
-            print(f"Attempting to create table {table_name}.")
-            conn.execute(text(f'''
-                CREATE TABLE IF NOT EXISTS {table_name} (
-                    id SERIAL PRIMARY KEY,
-                    Player VARCHAR(255),
-                    xA90 DECIMAL(10, 3),
-                    Team VARCHAR(255),
-                    NPxG90_xA90 DECIMAL(10, 3),
-                    xGChain90 DECIMAL(10, 3),
-                    xGBuildup90 DECIMAL(10, 3)
-                )
-            '''))
-            print(f"Table {table_name} created successfully.")
-        except SQLAlchemyError as e:
-            print(f"Error creating table: {e}")
+    # Define column names
+    columns = ["Player", "Team", "xA90", "NPxG90_xA90", "xGChain90", "xGBuildup90"]
 
-    # Function to insert player data into the database
-    def insert_player_data(data):
-        """Insert player data into the PostgreSQL table."""
-        with engine.connect() as conn:
-            try:
-                # Explicit transaction to ensure commit
-                with conn.begin() as transaction:
-                    sql = text(f'''INSERT INTO {table_name} 
-                                   (Player, Team, xA90, NPxG90_xA90, xGChain90, xGBuildup90) 
-                                   VALUES (:Player, :Team, :xA90, :NPxG90_xA90, :xGChain90, :xGBuildup90)''')
-                    conn.execute(sql, data)
-            except SQLAlchemyError as e:
-                print("Error inserting data:", e)
+    # Create the CSV file with headers if it doesn't exist
+    try:
+        pd.DataFrame(columns=columns).to_csv(csv_file_path, index=True)
+    except Exception as e:
+        print(f"Error initializing CSV file: {e}")
+
+    # Function to save player data to CSV
+    def save_to_csv(data):
+        """Save player data to CSV, replacing any existing content."""
+        df = pd.DataFrame(data, columns=columns)
+        df.to_csv(csv_file_path, index=False)  # Replace the CSV content with the new data
 
     def run(playwright: Playwright) -> None:
         browser = playwright.chromium.launch(headless=True)
@@ -73,10 +46,10 @@ def form_stats():
         page.locator("#league-players > .table-popup > .table-popup-body > .table-options > div:nth-child(19) > .row-display > label").click()
         page.locator("div:nth-child(20) > .row-display > label").click()
         time.sleep(1)  # Wait for the table to be updated
-        # page.locator("#league-players").get_by_text("Apply").click()
-        # page.locator("div").filter(has_text=re.compile(r"^All games$")).click()
-        # page.locator("li").filter(has_text="5 games").click()
-        # page.locator("#players-filter").click()
+        page.locator("#league-players").get_by_text("Apply").click()
+        page.locator("div").filter(has_text=re.compile(r"^All games$")).click()
+        page.locator("li").filter(has_text="5 games").click()
+        page.locator("#players-filter").click()
 
         # Wait until the table rows are visible
         page.wait_for_selector("#league-players > table > tbody > tr")
@@ -122,9 +95,8 @@ def form_stats():
                 break
 
         # Print or process the extracted data
-        for player in players:
-            insert_player_data(player)
-        print("done!!!")
+        save_to_csv(players)
+        print("Data saved to CSV.")
 
         # Close the browser
         context.close()
@@ -133,8 +105,5 @@ def form_stats():
     # Run the script using Playwright
     with sync_playwright() as playwright:
         run(playwright)
-
-    # Close the MySQL connection
-    conn.close()
 
 form_stats()

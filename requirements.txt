@@ -1,8 +1,5 @@
-understat
-mysql-connector-python 
 pandas
 openpyxl
-sqlalchemy
 statsmodels
 matplotlib
 seaborn

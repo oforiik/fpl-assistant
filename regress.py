@@ -35,7 +35,7 @@ st.title('Goal Involvement OLS Model')
 # Load the table using a SQL query
 df = EPL_stats()
 # Use `engine` for the connection
-df = df.drop_duplicates(subset=['Player'], keep='first')
+# df = df.drop_duplicates(subset=['Player'], keep='first')
 threshold = df['Minutes'].max() * 0.6
 df = df[df['Minutes'] >= threshold]
 

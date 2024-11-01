@@ -2,7 +2,7 @@ name: Run daily scripts
 
 on:
   schedule:
-    - cron: '30 11 * * *'  
+    - cron: '47 11 * * *'  
   workflow_dispatch:  # Allows manual triggering of this workflow
 
 jobs:
@@ -31,4 +31,4 @@ jobs:
       - name: Run daily script
         run: |
           python player_stat1.py
-          python player_stats.py
+          python playwrit.py

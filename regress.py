@@ -51,6 +51,9 @@ with tab2:
     - **R-squared**: Represents the percentage of NpGI90 explained by the model. Currently, just over {r_squared * 100:.2f}% of the variance of npGI90 is explained by the model.
     """)
     
+    st.divider()
+    st.subheader('OLS Model Summary')
+    
     st.write(model.summary())
 
     st.divider()

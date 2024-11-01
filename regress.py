@@ -40,7 +40,8 @@ with tab2:
     xGChain_xGBuildup_coef = model.params['xGChain_xGBuildup']  
     sp_chain_coef = model.params['SP_Chain_Buildup']  
     xA90_coef = model.params['xA90']
-    r_squared = model.rsquared  
+    r_squared = model.rsquared
+    
     # Explanation section
     st.subheader("Variable Definitions")
     st.markdown(f"""

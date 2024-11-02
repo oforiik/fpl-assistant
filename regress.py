@@ -156,6 +156,10 @@ with tab1:
     # Show only selected columns in a scrollable table
     columns_to_display = ['Rank', 'Player', 'Team', 'NPGI Per 90', 'npxG90', 'xA90', 'xGChain90', 'xGBuildup90']
     st.dataframe(df_ranked[columns_to_display], height=600)  # Set a fixed height for scrollability
+    
+    st.markdown(f"""
+    **N.B**: The rankings are based on each player's form over their last 5 EPL games, with only players who have played at least 180 minutes in this period included. It doesent take into account the opposition.Data is scraped from Understat daily at midnight, ensuring up-to-date rankings.\n\n Meaning don't buy Archer for Haaland when Archer has Arsenal and Haaland has Leicster at home, use your head!
+    """)
 
 
 # Adding contact information as a footer

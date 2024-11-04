@@ -53,6 +53,7 @@ def form_stats():
 
         # Wait until the table rows are visible
         page.wait_for_selector("#league-players > table > tbody > tr")
+        page.wait_for_timeout(3000) 
 
         # Scrape the table data
         players = []
@@ -85,7 +86,7 @@ def form_stats():
                     })
 
             # Try to go to the next page
-            next_button = page.locator("#league-players a").get_by_text(f"{page_number}", exact=True)
+            next_button = page.locator("#league-players a").get_by_text(f"{page_number + 1}", exact=True)
             if next_button.count() > 0:
                 next_button.click()
                 page.wait_for_selector("#league-players > table > tbody > tr")
@@ -96,7 +97,7 @@ def form_stats():
 
         # Print or process the extracted data
         save_to_csv(players)
-        print("Data saved to CSV.")
+        print("form_stats.csv data saved")
 
         # Close the browser
         context.close()

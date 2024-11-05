@@ -2,7 +2,7 @@ name: Run daily scripts
 
 on:
   schedule:
-    - cron: '25 9 * * *'  # Runs every day at 12:17 UTC
+    - cron: '0 0 * * *'  # Runs every day at 12:17 UTC
   workflow_dispatch:  # Allows manual triggering of this workflow
 
 jobs:
@@ -33,13 +33,18 @@ jobs:
           python player_stat1.py
           python playwrit.py
 
-      - name: Commit and push CSV updates
+      - name: Commit and push CSV updates if there are changes
         run: |
           git config --local user.email "67693914+oforiik@users.noreply.github.com"
           git config --local user.name "oforiik"
           git add data/form_stats.csv data/season_stats.csv
-          git commit -m "Update CSV files with daily data"
-          git push
+          
+          # Only commit if there are changes
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Update CSV files with daily data"
+            git push
+          else
+            echo "No changes to commit."
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub token for permissions
-        

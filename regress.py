@@ -158,7 +158,8 @@ with tab1:
     st.dataframe(df_ranked[columns_to_display], height=600)  # Set a fixed height for scrollability
     
     st.markdown(f"""
-    **N.B**: The rankings are based on each player's form over their last 5 EPL games, with only players who have played at least 180 minutes in this period included. It doesent take into account the opposition.Data is scraped from Understat daily at midnight, ensuring up-to-date rankings.\n\n Meaning don't buy Archer for Haaland when Archer has Arsenal and Haaland has Leicster at home, use your head!
+    **Guide and FAQs**
+    The rankings are based on each player's form over their last 5 EPL games, with only players who have played at least 180 minutes in this period included. Data is scraped from Understat daily at midnight, ensuring up-to-date rankings.\n\nIt doesen't take into account the next opposition. Meaning don't buy Archer for Haaland when Archer has Arsenal and Haaland has Leicster at home, use your head! \n\nIt doesent take into account whether the Goal Involvements are predominantly goals or assists Generally, consider anything with a difference of ~0.1 to be a preference decision. 
     """)
 
 

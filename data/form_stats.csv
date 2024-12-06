@@ -1,43 +1,42 @@
 Player,Team,xA90,NPxG90_xA90,xGChain90,xGBuildup90
 Mohamed Salah,Liverpool,0.47,1.13,1.2,0.1
-Justin Kluivert,Bournemouth,0.21,0.43,0.58,0.29
+Justin Kluivert,Bournemouth,0.22,0.48,0.65,0.3
+Alex Iwobi,Fulham,0.31,0.56,0.7,0.19
 Marcus Rashford,Manchester United,0.05,0.41,0.58,0.18
 Alexander Isak,Newcastle United,0.21,0.73,0.64,0.1
 Yoane Wissa,Brentford,0.08,0.59,0.8,0.26
-James Maddison,Tottenham,0.01,0.61,0.81,0.31
+James Maddison,Tottenham,0.05,0.56,0.63,0.21
 Matheus Cunha,Wolverhampton Wanderers,0.35,0.54,0.78,0.27
-João Pedro,Brighton,0.37,1.0,1.07,0.27
 Kevin Schade,Brentford,0.25,1.12,1.09,0.0
 Nicolas Jackson,Chelsea,0.16,0.55,0.59,0.15
-Brennan Johnson,Tottenham,0.08,0.87,1.02,0.18
+Brennan Johnson,Tottenham,0.0,0.74,0.87,0.12
 Jørgen Strand Larsen,Wolverhampton Wanderers,0.1,0.56,0.63,0.1
-Evanilson,Bournemouth,0.03,0.73,0.76,0.03
-Alex Iwobi,Fulham,0.29,0.49,0.6,0.17
 Ross Barkley,Aston Villa,0.03,0.6,0.72,0.39
 Jordan Ayew,Leicester,0.0,0.64,0.9,0.28
 Jamie Vardy,Leicester,0.28,0.64,0.67,0.03
 Bruno Fernandes,Manchester United,0.42,0.72,0.84,0.29
-Dominic Solanke,Tottenham,0.14,0.52,0.64,0.14
+Dominic Solanke,Tottenham,0.12,0.53,0.59,0.07
 Mateo Kovacic,Manchester City,0.26,0.37,0.65,0.46
 Adam Armstrong,Southampton,0.11,0.33,0.32,0.13
 Chris Wood,Nottingham Forest,0.05,0.28,0.34,0.05
 Aaron Wan-Bissaka,West Ham,0.0,0.11,0.31,0.21
 Bukayo Saka,Arsenal,0.55,0.73,0.61,0.32
+João Pedro,Brighton,0.39,0.95,0.98,0.23
 Cole Palmer,Chelsea,0.28,0.92,0.91,0.26
 Mikkel Damsgaard,Brentford,0.19,0.41,0.58,0.2
 Ollie Watkins,Aston Villa,0.04,0.83,0.64,0.03
 Jéremy Doku,Manchester City,0.24,0.52,0.59,0.27
-Kaoru Mitoma,Brighton,0.14,0.54,0.92,0.43
+Kaoru Mitoma,Brighton,0.21,0.5,0.92,0.53
 Cody Gakpo,Liverpool,0.1,0.69,0.77,0.18
 Enzo Fernández,Chelsea,0.47,0.77,0.82,0.33
 João Gomes,Wolverhampton Wanderers,0.03,0.17,0.53,0.4
 Mohammed Kudus,West Ham,0.07,0.73,1.01,0.31
 Morgan Rogers,Aston Villa,0.19,0.48,0.53,0.29
 Sammie Szmodics,Ipswich,0.0,0.55,0.68,0.13
+Evanilson,Bournemouth,0.05,0.82,0.87,0.06
 Fabian Schär,Newcastle United,0.0,0.05,0.14,0.13
 Joelinton,Newcastle United,0.02,0.11,0.26,0.19
 Kevin De Bruyne,Manchester City,0.89,1.37,1.56,0.48
-Son Heung-Min,Tottenham,0.49,0.7,0.99,0.5
 Danny Welbeck,Brighton,0.04,0.36,0.6,0.33
 Ashley Young,Everton,0.13,0.15,0.21,0.1
 Ola Aina,Nottingham Forest,0.01,0.03,0.19,0.17
@@ -62,8 +61,8 @@ Curtis Jones,Liverpool,0.06,0.32,0.51,0.25
 Diogo Jota,Liverpool,0.01,0.53,0.6,0.2
 Axel Disasi,Chelsea,0.0,0.26,0.18,0.18
 William Saliba,Arsenal,0.1,0.3,0.63,0.63
-Pedro Porro,Tottenham,0.06,0.19,0.37,0.25
-Emile Smith-Rowe,Fulham,0.12,0.37,0.65,0.35
+Pedro Porro,Tottenham,0.06,0.21,0.42,0.29
+Emile Smith-Rowe,Fulham,0.11,0.22,0.5,0.33
 Marc Guehi,Crystal Palace,0.13,0.37,0.29,0.24
 Leandro Trossard,Arsenal,0.23,0.88,0.91,0.26
 Gabriel Martinelli,Arsenal,0.03,0.54,0.44,0.03
@@ -78,26 +77,27 @@ Vitaly Janelt,Brentford,0.09,0.14,0.46,0.34
 Dominik Szoboszlai,Liverpool,0.23,0.32,0.7,0.55
 Josko Gvardiol,Manchester City,0.19,0.45,0.95,0.6
 Omari Hutchinson,Ipswich,0.13,0.23,0.25,0.05
+Carlos Baleba,Brighton,0.1,0.14,0.7,0.57
 Alejandro Garnacho,Manchester United,0.0,0.33,0.47,0.16
 Darwin Núñez,Liverpool,0.11,0.71,0.83,0.14
-Ryan Christie,Bournemouth,0.19,0.24,0.31,0.25
 Joe Ayodele-Aribo,Southampton,0.13,0.49,0.59,0.1
 Flynn Downes,Southampton,0.02,0.17,0.5,0.35
 Noni Madueke,Chelsea,0.12,1.07,1.35,0.48
 Facundo Buonanotte,Leicester,0.33,0.54,0.55,0.11
-Antoine Semenyo,Bournemouth,0.18,0.67,0.95,0.39
+Antoine Semenyo,Bournemouth,0.25,0.61,0.9,0.34
 Jurriën Timber,Arsenal,0.05,0.18,0.36,0.3
-Milos Kerkez,Bournemouth,0.29,0.32,0.43,0.16
+Milos Kerkez,Bournemouth,0.3,0.32,0.44,0.18
 Murillo,Nottingham Forest,0.02,0.24,0.11,0.08
 Daniel Muñoz,Crystal Palace,0.2,0.65,0.57,0.11
-Yankuba Minteh,Brighton,0.1,0.32,0.39,0.11
 Mateus Fernandes,Southampton,0.11,0.4,0.42,0.2
 Bilal El Khannouss,Leicester,0.57,0.62,0.58,0.19
 Justin Devenny,Crystal Palace,0.18,0.45,0.41,0.16
 Ferdi Kadioglu,Brighton,0.01,0.14,0.49,0.36
+Matt O'Riley,Brighton,0.12,0.47,1.01,0.67
 Jannik Vestergaard,Leicester,0.0,0.01,0.3,0.3
-Bernd Leno,Fulham,0.0,0.0,0.14,0.14
+Bernd Leno,Fulham,0.0,0.0,0.11,0.11
 Ilkay Gündogan,Manchester City,0.05,0.12,0.44,0.37
+Son Heung-Min,Tottenham,0.54,0.69,0.93,0.46
 Adam Lallana,Southampton,0.01,0.03,0.07,0.05
 Michail Antonio,West Ham,0.02,0.32,0.29,0.06
 Nathan Aké,Manchester City,0.0,0.06,0.43,0.4
@@ -106,19 +106,19 @@ Alex McCarthy,Southampton,0.0,0.0,0.17,0.17
 Kyle Walker,Manchester City,0.07,0.07,0.53,0.53
 Christian Eriksen,Manchester United,0.08,0.12,0.57,0.49
 Kieran Trippier,Newcastle United,0.05,0.07,0.27,0.25
-Ben Davies,Tottenham,0.0,0.0,0.54,0.54
+Ben Davies,Tottenham,0.0,0.0,0.44,0.44
 Idrissa Gueye,Everton,0.13,0.16,0.33,0.26
 Jack Grealish,Manchester City,0.21,0.28,0.68,0.54
 Lukasz Fabianski,West Ham,0.0,0.0,0.01,0.01
 Jordan Pickford,Everton,0.01,0.01,0.04,0.03
 Craig Dawson,Wolverhampton Wanderers,0.0,0.06,0.23,0.23
 Jonny Evans,Manchester United,0.0,0.02,0.36,0.36
-Adam Smith,Bournemouth,0.02,0.08,0.26,0.18
+Adam Smith,Bournemouth,0.01,0.07,0.33,0.27
+Fraser Forster,Tottenham,0.0,0.0,0.11,0.11
 Virgil van Dijk,Liverpool,0.01,0.12,0.34,0.33
 James Ward-Prowse,Nottingham Forest,0.06,0.08,0.13,0.11
 Kyle Walker-Peters,Southampton,0.13,0.14,0.25,0.25
-Adama Traoré,Fulham,0.42,0.64,0.74,0.14
-Andreas Pereira,Fulham,0.26,0.41,0.54,0.4
+Andreas Pereira,Fulham,0.16,0.31,0.6,0.44
 Axel Tuanzebe,Ipswich,0.0,0.06,0.32,0.32
 Harry Winks,Leicester,0.22,0.25,0.58,0.55
 Sam Johnstone,Wolverhampton Wanderers,0.01,0.01,0.08,0.08
@@ -135,18 +135,18 @@ Andrew Robertson,Liverpool,0.25,0.26,0.66,0.43
 Abdoulaye Doucouré,Everton,0.06,0.1,0.14,0.07
 Jack Stephens,Southampton,0.0,0.02,0.34,0.34
 Jarrod Bowen,West Ham,0.32,0.46,0.47,0.09
-Lewis Cook,Bournemouth,0.12,0.14,0.3,0.24
+Lewis Cook,Bournemouth,0.12,0.15,0.37,0.32
 Trent Alexander-Arnold,Liverpool,0.33,0.38,0.85,0.55
 Lucas Digne,Aston Villa,0.58,0.65,0.31,0.07
 Jefferson Lerma,Crystal Palace,0.03,0.06,0.75,0.71
 Alphonse Areola,West Ham,0.0,0.0,0.12,0.12
 Carlos Soler,West Ham,0.13,0.25,0.34,0.15
-Issa Diop,Fulham,0.03,0.21,0.57,0.54
-Raúl Jiménez,Fulham,0.28,0.65,0.68,0.13
+Issa Diop,Fulham,0.02,0.14,0.4,0.38
+Raúl Jiménez,Fulham,0.1,0.49,0.51,0.12
 Álex Moreno,Nottingham Forest,0.14,0.17,0.29,0.13
 Emiliano Martinez,Aston Villa,0.0,0.0,0.12,0.12
-Kepa,Bournemouth,0.01,0.01,0.22,0.22
-Estupiñán,Brighton,0.22,0.3,0.63,0.43
+Kepa,Bournemouth,0.01,0.01,0.21,0.21
+Estupiñán,Brighton,0.22,0.3,0.64,0.42
 Leon Bailey,Aston Villa,0.06,0.15,0.18,0.04
 Wilfred Ndidi,Leicester,0.03,0.23,0.19,0.08
 Nick Pope,Newcastle United,0.0,0.0,0.05,0.05
@@ -154,14 +154,14 @@ Declan Rice,Arsenal,0.25,0.38,0.48,0.34
 Dominic Calvert-Lewin,Everton,0.03,0.37,0.37,0.05
 Tosin Adarabioyo,Chelsea,0.0,0.06,0.69,0.69
 Aaron Ramsdale,Southampton,0.0,0.0,0.11,0.11
-Yves Bissouma,Tottenham,0.0,0.01,0.45,0.44
+Yves Bissouma,Tottenham,0.01,0.03,0.44,0.43
 Diego Carlos,Aston Villa,0.0,0.22,0.18,0.18
 Ibrahim Sangare,Nottingham Forest,0.0,0.01,0.28,0.27
 Youri Tielemans,Aston Villa,0.24,0.25,0.37,0.32
 Kenny Tete,Fulham,0.09,0.13,0.28,0.25
 Jan Bednarek,Southampton,0.03,0.03,0.14,0.14
 Charlie Taylor,Southampton,0.03,0.03,0.29,0.27
-Lewis Dunk,Brighton,0.0,0.05,0.39,0.39
+Lewis Dunk,Brighton,0.0,0.05,0.49,0.49
 Ederson,Manchester City,0.0,0.0,0.12,0.12
 Phil Foden,Manchester City,0.45,0.65,0.66,0.26
 Jacob Murphy,Newcastle United,0.03,0.15,0.23,0.09
@@ -175,18 +175,18 @@ Joachim Andersen,Fulham,0.0,0.02,0.38,0.38
 Ibrahima Konaté,Liverpool,0.01,0.21,0.33,0.33
 Ben Johnson,Ipswich,0.13,0.13,0.17,0.05
 Manuel Akanji,Manchester City,0.03,0.06,0.66,0.65
-Reiss Nelson,Fulham,0.19,0.42,0.7,0.42
+Reiss Nelson,Fulham,0.14,0.35,0.58,0.36
 Bryan Mbeumo,Brentford,0.1,0.12,0.34,0.27
 Joe Willock,Newcastle United,0.18,0.29,0.35,0.06
 Rayan Ait Nouri,Wolverhampton Wanderers,0.0,0.06,0.26,0.22
-Dejan Kulusevski,Tottenham,0.43,0.55,0.73,0.2
+Dejan Kulusevski,Tottenham,0.4,0.47,0.61,0.16
 Konstantinos Mavropanos,West Ham,0.09,0.16,0.17,0.16
 Dwight McNeil,Everton,0.22,0.28,0.52,0.27
 Jean-Clair Todibo,West Ham,0.01,0.01,0.11,0.11
 Conor Coady,Leicester,0.0,0.0,0.31,0.31
 Morgan Gibbs-White,Nottingham Forest,0.09,0.23,0.46,0.36
 Matz Sels,Nottingham Forest,0.0,0.0,0.03,0.03
-Georginio Rutter,Brighton,0.1,0.43,0.59,0.21
+Georginio Rutter,Brighton,0.02,0.38,0.59,0.24
 Arijanet Muric,Ipswich,0.0,0.0,0.11,0.11
 Mark Flekken,Brentford,0.0,0.0,0.17,0.17
 Sean Longstaff,Newcastle United,0.02,0.09,0.29,0.25
@@ -200,7 +200,7 @@ Diogo Dalot,Manchester United,0.0,0.03,0.19,0.17
 Ben White,Arsenal,0.12,0.12,0.23,0.23
 Max Kilman,West Ham,0.01,0.04,0.21,0.21
 Caleb Okoli,Leicester,0.0,0.0,0.42,0.42
-Tyler Adams,Bournemouth,0.03,0.05,0.37,0.33
+Tyler Adams,Bournemouth,0.08,0.23,0.49,0.3
 Lucas Paquetá,West Ham,0.14,0.22,0.38,0.19
 Dan Burn,Newcastle United,0.01,0.03,0.12,0.11
 James Garner,Everton,0.01,0.03,0.06,0.05
@@ -215,7 +215,7 @@ Jean-Ricner Bellegarde,Wolverhampton Wanderers,0.11,0.11,0.22,0.11
 João Félix,Chelsea,0.27,1.2,1.54,0.43
 Matthijs de Ligt,Manchester United,0.0,0.03,0.13,0.13
 Caoimhin Kelleher,Liverpool,0.0,0.0,0.23,0.23
-Igor Julio,Brighton,0.02,0.02,0.6,0.57
+Igor Julio,Brighton,0.02,0.02,0.67,0.64
 Sandro Tonali,Newcastle United,0.04,0.07,0.31,0.24
 Reece James,Chelsea,0.0,0.0,0.17,0.17
 Amad Diallo Traore,Manchester United,0.37,0.54,0.7,0.33
@@ -224,7 +224,7 @@ Tyrick Mitchell,Crystal Palace,0.13,0.15,0.42,0.27
 William Smallbone,Southampton,0.08,0.17,0.47,0.43
 Nicolás Domínguez,Nottingham Forest,0.03,0.11,0.38,0.34
 Guido Rodríguez,West Ham,0.02,0.04,0.38,0.37
-Sander Berge,Fulham,0.03,0.03,0.22,0.2
+Sander Berge,Fulham,0.03,0.03,0.21,0.19
 Bruno Guimarães,Newcastle United,0.13,0.19,0.34,0.2
 Alexis Mac Allister,Liverpool,0.16,0.23,0.26,0.17
 Chris Richards,Crystal Palace,0.0,0.05,0.26,0.26
@@ -238,24 +238,24 @@ Kalvin Phillips,Ipswich,0.02,0.09,0.35,0.33
 Dara O'Shea,Ipswich,0.0,0.08,0.14,0.14
 Joël Veltman,Brighton,0.07,0.07,0.29,0.22
 Stefan Ortega Moreno,Manchester City,0.0,0.0,0.11,0.11
-Iyenoma Destiny Udogie,Tottenham,0.11,0.11,0.54,0.53
+Iyenoma Destiny Udogie,Tottenham,0.05,0.05,0.52,0.51
 Konstantinos Tsimikas,Liverpool,0.36,0.4,0.67,0.62
 Maxence Lacroix,Crystal Palace,0.0,0.06,0.28,0.27
 Guglielmo Vicario,Tottenham,0.0,0.0,0.16,0.16
-Antonee Robinson,Fulham,0.11,0.13,0.4,0.36
+Antonee Robinson,Fulham,0.14,0.16,0.39,0.35
 Jacob Ramsey,Aston Villa,0.11,0.16,0.41,0.29
 Rúben Dias,Manchester City,0.02,0.04,0.47,0.45
 Malo Gusto,Chelsea,0.12,0.36,0.82,0.54
-Pape Sarr,Tottenham,0.01,0.03,0.5,0.48
+Pape Sarr,Tottenham,0.02,0.03,0.48,0.46
 Robert Sánchez,Chelsea,0.0,0.0,0.12,0.12
-Radu Dragusin,Tottenham,0.0,0.01,0.47,0.47
+Radu Dragusin,Tottenham,0.0,0.01,0.32,0.32
 Elliot Anderson,Nottingham Forest,0.47,0.59,0.52,0.14
 Iliman Ndiaye,Everton,0.05,0.12,0.25,0.13
 Crysencio Summerville,West Ham,0.24,0.44,0.34,0.08
 Valentino Livramento,Newcastle United,0.05,0.05,0.26,0.24
 Anthony Elanga,Nottingham Forest,0.27,0.39,0.19,0.07
 Tim Iroegbunam,Everton,0.03,0.06,0.42,0.37
-Dango Ouattara,Bournemouth,0.25,0.65,0.54,0.16
+Dango Ouattara,Bournemouth,0.34,0.58,0.57,0.14
 Amadou Onana,Aston Villa,0.02,0.16,0.27,0.26
 David Raya,Arsenal,0.0,0.0,0.2,0.2
 Kristoffer Ajer,Brentford,0.06,0.06,0.22,0.16
@@ -276,15 +276,15 @@ Vitalii Mykolenko,Everton,0.02,0.09,0.29,0.22
 Toti,Wolverhampton Wanderers,0.02,0.03,0.24,0.2
 Jens Cajuste,Ipswich,0.01,0.02,0.19,0.17
 Luis Díaz,Liverpool,0.13,0.23,0.54,0.32
-Carlos Baleba,Brighton,0.12,0.14,0.82,0.69
 Tyler Dibling,Southampton,0.07,0.12,0.38,0.32
 Noussair Mazraoui,Manchester United,0.03,0.03,0.38,0.36
 Ryan Gravenberch,Liverpool,0.1,0.25,0.39,0.29
 Sepp van den Berg,Brentford,0.01,0.05,0.33,0.3
-Marcus Tavernier,Bournemouth,0.21,0.29,0.61,0.37
+Marcus Tavernier,Bournemouth,0.34,0.51,0.7,0.32
+Ryan Christie,Bournemouth,0.21,0.25,0.36,0.25
 Lisandro Martínez,Manchester United,0.0,0.01,0.35,0.35
 Levi Colwill,Chelsea,0.0,0.01,0.3,0.3
-Jan Paul van Hecke,Brighton,0.08,0.1,0.66,0.6
+Jan Paul van Hecke,Brighton,0.09,0.14,0.77,0.71
 Keane Lewis-Potter,Brentford,0.07,0.13,0.31,0.25
 Rico Lewis,Manchester City,0.02,0.06,0.54,0.5
 Marcos Senesi,Bournemouth,0.01,0.15,0.37,0.37
@@ -297,10 +297,11 @@ Kobbie Mainoo,Manchester United,0.16,0.19,0.38,0.19
 Jack Hinshelwood,Brighton,0.01,0.09,0.37,0.29
 Victor Kristiansen,Leicester,0.19,0.19,0.28,0.24
 Yasin Ayari,Brighton,0.14,0.18,0.54,0.51
-Illia Zabarnyi,Bournemouth,0.01,0.01,0.27,0.27
-Bart Verbruggen,Brighton,0.0,0.0,0.11,0.11
+Illia Zabarnyi,Bournemouth,0.01,0.01,0.3,0.3
+Simon Adingra,Brighton,0.05,0.25,0.37,0.12
+Bart Verbruggen,Brighton,0.0,0.0,0.1,0.1
 Chiedozie Ogbene,Ipswich,0.03,0.03,0.03,0.0
-Calvin Bassey,Fulham,0.01,0.03,0.24,0.23
+Calvin Bassey,Fulham,0.01,0.03,0.19,0.18
 Sávio,Manchester City,0.64,0.88,0.91,0.26
 Manuel Ugarte,Manchester United,0.18,0.19,0.35,0.35
 Edson Álvarez,West Ham,0.04,0.07,0.21,0.15

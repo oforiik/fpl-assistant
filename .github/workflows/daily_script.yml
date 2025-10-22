@@ -55,6 +55,8 @@ jobs:
           git config --local user.name "oforiik"
           git add data/form_stats.csv data/season_stats.csv
           git commit -m "Update CSV files with daily data [$(date +'%Y-%m-%d %H:%M:%S UTC')]"
+          # Pull and rebase to incorporate any remote changes
+          git pull --rebase origin main
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

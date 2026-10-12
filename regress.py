@@ -6,75 +6,59 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from statsmodels.graphics.gofplots import qqplot
 from statsmodels.stats.outliers_influence import variance_inflation_factor
-# Initialize session state for persistent storage
-if 'season_caps' not in st.session_state:
-    st.session_state.season_caps = {}
 
-def calculate_season_caps(season_df, threshold_pct):
-    """Calculate capping thresholds from season data using dynamic threshold"""
-    if season_df.empty or threshold_pct <= 0:
-        return {}
+# Initialize session state for model storage
+if 'trained_model' not in st.session_state:
+    st.session_state.trained_model = None
+
+def get_training_threshold(season_df):
+    """Calculate training threshold: min(360 minutes, 60% of max minutes)"""
+    if season_df.empty:
+        return 0
     
     max_minutes = season_df['Minutes'].max()
-    threshold = max_minutes * threshold_pct
+    threshold_60pct = max_minutes * 0.6
+    threshold = min(360, threshold_60pct)
     
-    eligible = season_df[season_df['Minutes'] >= threshold]
-    if len(eligible) < 5:
-        st.warning(f"Not enough qualified players ({len(eligible)}) at {threshold_pct:.0%} threshold!")
-        return {}
-    
-    return {
-        'xA90': eligible['xA90'].quantile(0.95),
-        'NPxG90_xA90': eligible['NPxG90_xA90'].quantile(0.95),
-        'xGChain90': eligible['xGChain90'].quantile(0.95),
-        'xGBuildup90': eligible['xGBuildup90'].quantile(0.95)
-    }
+    return threshold
 
-def apply_capping(df, caps):
-    """Apply capping to dataframe using pre-calculated caps"""
-    if not caps or df.empty:
-        return df
-    
-    capped_df = df.copy()
-    for col, cap in caps.items():
-        if col in capped_df.columns:
-            capped_df[col] = np.minimum(capped_df[col], cap)
-    return capped_df
-
-st.title('Goal Involvement OLS Model')
-tab1, tab2 = st.tabs(["NpGI90 Predictor", "Model Summary"])
+st.title('Goal Involvement Prediction Model')
+tab1, tab2 = st.tabs(["Player Predictions", "Model Training & Diagnostics"])
 
 with tab2:
+    st.header("Model Training & Analysis")
+    
     # Load season data
     season_df = pd.read_csv("data/season_stats.csv").drop_duplicates(subset=['Player'], keep='first')
     
-    # Dynamic threshold control
-    threshold_pct = st.slider(
-        'Season minutes threshold (%)', 
-        0, 100, 60,
-        format='%d%%',
-        help="Percentage of maximum season minutes required for uncapped stats"
-    ) / 100
+    # Calculate training threshold
+    training_threshold = get_training_threshold(season_df)
+    st.info(f"Training threshold: {training_threshold:.0f} minutes (minimum of 360 minutes or 60% of max season minutes)")
     
-    # Calculate and store capping thresholds
-    st.session_state.season_caps = calculate_season_caps(season_df, threshold_pct)
+    # Filter players for training
+    training_players = season_df[season_df['Minutes'] >= training_threshold].copy()
+    st.write(f"Training on {len(training_players)} players out of {len(season_df)} total players")
     
-    if st.session_state.season_caps:
-        # Apply capping to season data
-        capped_season = apply_capping(season_df, st.session_state.season_caps)
-        
-        # Model preprocessing
-        capped_season['xGChain_xGBuildup'] = capped_season['xGChain90'] - capped_season['xGBuildup90']
-        capped_season['SP_Chain_Buildup'] = (capped_season['NPxG90_xA90'] - capped_season['xGChain_xGBuildup']) / capped_season['NPxG90_xA90']
-        capped_season.replace([np.inf, -np.inf], np.nan, inplace=True)
-        capped_season.dropna(inplace=True)
+    if len(training_players) >= 5:
+        # Model preprocessing (no capping)
+        training_players['xGChain_xGBuildup'] = training_players['xGChain90'] - training_players['xGBuildup90']
+        training_players['SP_Chain_Buildup'] = (training_players['NPxG90_xA90'] - training_players['xGChain_xGBuildup']) / training_players['NPxG90_xA90']
+        training_players.replace([np.inf, -np.inf], np.nan, inplace=True)
+        training_players.dropna(inplace=True)
 
-        # Weighted model setup
-        y = capped_season['NpGI90']
-        X = sm.add_constant(capped_season[['xGChain_xGBuildup', 'SP_Chain_Buildup', 'xA90']])
-        model = sm.WLS(y, X, weights=capped_season['Minutes']).fit()
+        # Unweighted OLS model setup
+        y = training_players['NpGI90']
+        X = sm.add_constant(training_players[['xGChain_xGBuildup', 'SP_Chain_Buildup', 'xA90']])
+        model = sm.OLS(y, X).fit()
         
-        # New Enhanced Model Diagnostics Section
+        # Store model in session state
+        st.session_state.trained_model = model
+        
+        # Model Summary
+        st.subheader("Model Summary")
+        st.text(str(model.summary()))
+        
+        # Enhanced Model Diagnostics
         st.subheader("Model Diagnostics")
         
         # Top Metrics Row
@@ -92,15 +76,20 @@ with tab2:
             st.metric("AIC/BIC", f"{model.aic:.1f}/{model.bic:.1f}",
                      help="Information criteria for model comparison")
 
+        # Training Data Summary
+        st.subheader("Training Data Summary")
+        training_summary = training_players[['Minutes', 'NpGI90', 'xA90', 'NPxG90_xA90', 'xGChain90', 'xGBuildup90']].describe()
+        st.dataframe(training_summary)
+
         # Assumption Checking Expandable Section
-        with st.expander("Regression Assumption Checks", expanded=True):
+        with st.expander("Regression Assumption Checks", expanded=False):
             assumption_col1, assumption_col2, assumption_col3 = st.columns(3)
             
             # Normality Test
             _, p_norm = sm.stats.diagnostic.normal_ad(model.resid)
             assumption_col1.metric("Normality (p-value)", 
                                   f"{p_norm:.4f}",
-                                  help="Jarque-Bera test of residual normality")
+                                  help="Anderson-Darling test of residual normality")
             
             # Heteroscedasticity Test
             _, p_het, _, _ = sm.stats.diagnostic.het_breuschpagan(model.resid, model.model.exog)
@@ -116,129 +105,106 @@ with tab2:
             assumption_col3.metric("Max VIF", 
                                   f"{max_vif:.1f}",
                                   help="Variance Inflation Factor (VIF > 10 indicates multicollinearity)")
-        # Enhanced Variable Analysis Section
-        with st.expander("Detailed Variable Analysis", expanded=True):
-            # Coefficient Plot
-            plt.figure(figsize=(10, 4))
-            model.params[1:].plot(kind='barh')  # Exclude intercept
-            plt.title("Standardized Coefficient Magnitudes")
-            plt.xlabel("Effect Size")
-            st.pyplot(plt)
             
-            # Partial Regression Plots
-            st.write("**Partial Regression Plots**")
-            fig = plt.figure(figsize=(15, 5))
-            sm.graphics.plot_partregress_grid(model, fig=fig)
-            st.pyplot(fig)
-
-        # Model Comparison Section
-        with st.expander("Model Comparison", expanded=False):
-            # Compare with unweighted model
-            simple_model = sm.OLS(y, X).fit()
-            comparison_df = pd.DataFrame({
-                'Weighted': [model.rsquared, model.aic, model.bic],
-                'Unweighted': [simple_model.rsquared, simple_model.aic, simple_model.bic]
-            }, index=['R-squared', 'AIC', 'BIC'])
-            st.dataframe(comparison_df.style.format("{:.2f}"), 
-                        use_container_width=True)
-
-        # Interactive Coefficient Explorer
-        with st.expander("Interactive Coefficient Exploration"):
-            selected_var = st.selectbox("Choose variable to explore:", 
-                                       model.params.index[1:])  # Exclude intercept
-            var_details = {
-                'Coefficient': model.params[selected_var],
-                'P-value': model.pvalues[selected_var],
-                'CI Lower': model.conf_int().loc[selected_var, 0],
-                'CI Upper': model.conf_int().loc[selected_var, 1]
-            }
-            st.json(var_details)
-            
-            # Individual residual plot
-            plt.figure(figsize=(10, 4))
-            sns.regplot(x=X[selected_var], y=model.resid, lowess=True)
-            plt.axhline(0, color='red', linestyle='--')
-            plt.title(f"Residuals vs {selected_var}")
-            st.pyplot(plt)
-
-        # Replace original plots with more informative versions
-        with st.expander("Advanced Diagnostics", expanded=False):
-            # Calculate leverage and Cook's distance manually
-            try:
-                # For OLS models
-                influence = model.get_influence()
-            except AttributeError:
-                # For WLS models
-                X = model.model.exog
-                w = model.model.weights  # Get weights from WLS model
-                w_sqrt = np.sqrt(w)
-                X_weighted = w_sqrt[:, None] * X
-                hat_matrix_diag = np.diag(X_weighted @ np.linalg.pinv(X_weighted.T @ X_weighted) @ X_weighted.T)
-                cooks = (model.resid**2 / (X.shape[1] * model.mse_resid)) * (hat_matrix_diag / (1 - hat_matrix_diag)**2)
-            else:
-                # For OLS models
-                hat_matrix_diag = influence.hat_matrix_diag
-                cooks = influence.cooks_distance[0]
-
-            # Cook's Distance Plot
-            plt.figure(figsize=(10, 4))
-            plt.stem(cooks, markerfmt=",")
-            plt.title("Cook's Distance for Influential Points")
-            plt.xlabel("Observation Index")
-            plt.ylabel("Cook's Distance")
-            st.pyplot(plt)
-            
-            # Leverage Plot
-            fig, ax = plt.subplots(figsize=(10, 4))
-            ax.scatter(hat_matrix_diag, model.resid_pearson)
-            ax.set_xlabel("Leverage (Hat values)")
-            ax.set_ylabel("Standardized Residuals")
-            ax.set_title("Leverage vs Residuals")
-            st.pyplot(fig)
+            # Display VIF table
+            st.write("**Variance Inflation Factors:**")
+            st.dataframe(vif_data.set_index("Variable"), use_container_width=True)
+    else:
+        st.error("Not enough players meet the training threshold for model fitting.")
+        st.session_state.trained_model = None
 with tab1:
-    # Load pre-filtered form data (already ≥180 mins)
-    form_df = pd.read_csv("data/form_stats.csv").drop_duplicates(subset=['Player'], keep='first')
-    
-    # Apply season-based capping from session state
-    capped_form = apply_capping(form_df, st.session_state.get('season_caps', {}))
-    
-    if not st.session_state.season_caps:
-        st.warning("Season caps not calculated yet - using uncapped data. Adjust threshold in Model Summary tab first.")
-    
-    # Form model processing
-    capped_form['npxG90'] = capped_form['NPxG90_xA90'] - capped_form['xA90']
-    capped_form['xGChain_xGBuildup'] = capped_form['xGChain90'] - capped_form['xGBuildup90']
-    capped_form['SP_Chain_Buildup'] = (capped_form['NPxG90_xA90'] - capped_form['xGChain_xGBuildup']) / capped_form['NPxG90_xA90']
-    capped_form.replace([np.inf, -np.inf], np.nan, inplace=True)
-    capped_form.dropna(inplace=True)
-
-    # Prediction model
-    X_form = sm.add_constant(capped_form[['xGChain_xGBuildup', 'SP_Chain_Buildup', 'xA90']])
-    y_form = capped_form['NPxG90_xA90']
-    form_model = sm.OLS(y_form, X_form).fit()
-    
-    # Generate predictions and rankings
-    capped_form['NPGI Per 90'] = form_model.predict(X_form)
-    capped_form['Rank'] = capped_form['NPGI Per 90'].rank(ascending=False)
-    df_ranked = capped_form.sort_values(by='Rank')
-
-    # Search implementation
     st.header('Player Ranking Based on Predicted Goal Involvements')
-    search_term = st.text_input("Search Player:")
     
-    # Filter based on search
-    filtered_df = df_ranked.copy()
-    if search_term:
-        filtered_df = filtered_df[filtered_df['Player'].str.contains(search_term, case=False)]
-    
-    # Display results
-    columns_to_display = ['Rank', 'Player', 'Team', 'NPGI Per 90', 'npxG90', 'xA90', 'xGChain90', 'xGBuildup90']
-    st.dataframe(filtered_df[columns_to_display], height=600)
-    
-    st.markdown("""
-    **Guide**: Rankings based on last 5 games (min 180 mins played). 
-    Stats capped using season-long 95th percentile values from players meeting the threshold.
-    """)
+    # Check if model is trained
+    if st.session_state.trained_model is None:
+        st.warning("Please train the model first by visiting the 'Model Training & Diagnostics' tab.")
+    else:
+        model = st.session_state.trained_model
+        
+        # Load form data
+        form_df = pd.read_csv("data/form_stats.csv").drop_duplicates(subset=['Player'], keep='first')
+        
+        if not form_df.empty:
+            # Prepare form data for prediction (no capping)
+            form_processed = form_df.copy()
+            form_processed['xGChain_xGBuildup'] = form_processed['xGChain90'] - form_processed['xGBuildup90']
+            form_processed['SP_Chain_Buildup'] = (form_processed['NPxG90_xA90'] - form_processed['xGChain_xGBuildup']) / form_processed['NPxG90_xA90']
+            form_processed.replace([np.inf, -np.inf], np.nan, inplace=True)
+            form_processed.dropna(inplace=True)
+            
+            # Get minutes - now both datasets should have Minutes column
+            form_with_minutes = form_processed.copy()
+            minutes_source = "last 5 games"
+            
+            # Make predictions using the trained model
+            X_form = sm.add_constant(form_processed[['xGChain_xGBuildup', 'SP_Chain_Buildup', 'xA90']])
+            form_with_minutes['Predicted_NpGI90'] = model.predict(X_form)
+            
+            # Add ranking
+            form_with_minutes['Rank'] = form_with_minutes['Predicted_NpGI90'].rank(ascending=False, method='min')
+            
+            # Add low minutes flag
+            form_with_minutes['Low_Minutes'] = form_with_minutes['Minutes'] < 180
+            
+            # Sort by rank
+            df_ranked = form_with_minutes.sort_values(by='Rank')
+            
+            # Search functionality
+            search_term = st.text_input("Search Player:")
+            filtered_df = df_ranked.copy()
+            if search_term:
+                filtered_df = filtered_df[filtered_df['Player'].str.contains(search_term, case=False, na=False)]
+            
+            # Prepare display data
+            display_df = filtered_df[[
+                'Rank', 'Player', 'Team', 'Predicted_NpGI90', 'Minutes', 
+                'xA90', 'NPxG90_xA90', 'xGChain90', 'xGBuildup90', 'Low_Minutes'
+            ]].copy()
+            
+            # Round predictions for better display
+            display_df['Predicted_NpGI90'] = display_df['Predicted_NpGI90'].round(3)
+            
+            # Display with conditional formatting
+            st.subheader(f"Player Rankings ({len(display_df)} players)")
+            
+            # Prepare display data with color coding
+            display_for_show = display_df.drop('Low_Minutes', axis=1).copy()
+            
+            # Simple approach: Add a visual indicator instead of complex styling
+            display_for_show['Minutes_Status'] = display_df['Minutes'].apply(
+                lambda x: f"⚠️ {x}" if x < 180 else str(x)
+            )
+            display_for_show = display_for_show.drop('Minutes', axis=1)
+            
+            # Reorder columns
+            cols = ['Rank', 'Player', 'Team', 'Predicted_NpGI90', 'Minutes_Status', 
+                    'xA90', 'NPxG90_xA90', 'xGChain90', 'xGBuildup90']
+            display_for_show = display_for_show[cols]
+            
+            st.dataframe(display_for_show, height=600, use_container_width=True)
+            
+            # Legend and info
+            st.markdown(f"""
+            **Legend**: 
+            - ⚠️ **Warning symbol**: Players with <180 minutes ({minutes_source})
+            - **Predicted_NpGI90**: Predicted non-penalty goal involvements per 90 minutes based on last 5 games
+            - **Rankings**: Based on recent form (last 5 games) applied to season-trained model
+            - **Minutes_Status**: Minutes played ({minutes_source}) - ⚠️ indicates <180 minutes
+            """)
+            
+            # Summary statistics
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Total Players", len(df_ranked))
+            with col2:
+                low_min_count = (df_ranked['Minutes'] < 180).sum()
+                st.metric(f"Low Minutes Players (<180 {minutes_source})", low_min_count)
+            with col3:
+                avg_prediction = df_ranked['Predicted_NpGI90'].mean()
+                st.metric("Avg Predicted NpGI90", f"{avg_prediction:.3f}")
+                
+        else:
+            st.error("No form data available. Please check data/form_stats.csv")
 
 # Footer
 st.markdown("---")

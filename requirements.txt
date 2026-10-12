@@ -1,9 +1,10 @@
+streamlit
 pandas
-openpyxl
-statsmodels
+numpy
+scikit-learn
 matplotlib
 seaborn
-psycopg2-binary
-schedule
-streamlit
-aiohttp==3.7.4
+plotly
+openpyxl
+statsmodels
+playwright

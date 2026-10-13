@@ -1,52 +1,21 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 import time
 import logging
 import re
 import csv
-from datetime import datetime
-from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
+from playwright.sync_api import sync_playwright
 
 # Set up logging
-def setup_logging():
-    """Set up logging configuration"""
-    log_filename = f"fpl_scraper_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-    # Create formatters
-    file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    console_formatter = logging.Formatter('%(levelname)s - %(message)s')
-    
-    # Create handlers
-    file_handler = logging.FileHandler(log_filename)
-    file_handler.setFormatter(file_formatter)
-    
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(console_formatter)
-    
-    # Configure logger
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
-    return log_filename
-
-def get_current_season():
-    """Get current season in format 2026/27"""
-    current_year = datetime.now().year
-    # FPL season runs from August to May, so if we're in Jan-July, it's still the previous season
-    if datetime.now().month < 8:
-        season_start = current_year - 1
-    else:
-        season_start = current_year
-    
-    season_end = str(season_start + 1)[-2:]  # Get last 2 digits
-    return f"{season_start}/{season_end}"
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s - %(message)s'
+)
 
 class FPLScraper:
     def __init__(self):
-        self.current_season = get_current_season()
-        logging.info(f"Initialized scraper for season {self.current_season}")
+        logging.info("Initialized FPL scraper")
 
     def save_to_csv(self, data, filepath, columns):
         """Save data to CSV file"""
@@ -235,45 +204,32 @@ class FPLScraper:
                 all_players.extend(page_players)
                 logging.info(f"Page {page_number}: Extracted {len(page_players)} players (total: {len(all_players)})")
                 
-                # Navigate to next page using the pattern from your codegen
+                # Navigate to next page using simple approach
                 next_page = page_number + 1
                 
                 try:
-                    # Pattern: pages 2-3 use nth(4), pages 4+ use nth(2)
-                    nth_values_to_try = [4, 2, 1, 0] if next_page <= 3 else [2, 4, 1, 0]
-                    
-                    next_page_clicked = False
-                    
-                    for nth_val in nth_values_to_try:
-                        try:
-                            page_link = page.locator("a").filter(has_text=re.compile(f"^{next_page}$"))
+                    # Try to find and click the "next" button or numbered link
+                    next_link = page.locator(f"a:has-text('{next_page}')")
+                    if next_link.count() > 0:
+                        next_link.first.click()
+                        time.sleep(1)
+                        
+                        # Wait for new content
+                        page.wait_for_selector("#league-players table tbody tr", timeout=5000)
+                        
+                        # Verify page change by checking if first player changed
+                        new_rows = page.locator("#league-players table tbody tr")
+                        if new_rows.count() > 0:
+                            new_first_player = new_rows.nth(0).locator("td").nth(1).inner_text(timeout=1000)
+                            old_first_player = page_players[0]["Player"] if page_players else ""
                             
-                            if page_link.count() > nth_val:
-                                page_link.nth(nth_val).click()
-                                time.sleep(1)
-                                
-                                # Wait for new content
-                                page.wait_for_selector("#league-players table tbody tr", timeout=5000)
-                                
-                                # Verify page change
-                                new_rows = page.locator("#league-players table tbody tr")
-                                if new_rows.count() > 0:
-                                    new_first_player = new_rows.nth(0).locator("td").nth(1).inner_text(timeout=1000)
-                                    old_first_player = page_players[0]["Player"] if page_players else ""
-                                    
-                                    if new_first_player != old_first_player:
-                                        logging.info(f"✓ Page {next_page} loaded (first: {new_first_player})")
-                                        next_page_clicked = True
-                                        break
-                            
-                        except Exception:
-                            continue
+                            if new_first_player != old_first_player:
+                                logging.info(f"✓ Page {next_page} loaded (first: {new_first_player})")
+                                page_number = next_page
+                                continue
                     
-                    if not next_page_clicked:
-                        logging.info(f"End of pagination reached at page {page_number}")
-                        break
-                    
-                    page_number = next_page
+                    logging.info(f"End of pagination reached at page {page_number}")
+                    break
                     
                 except Exception as e:
                     logging.info(f"Pagination ended: {e}")
@@ -286,86 +242,16 @@ class FPLScraper:
         logging.info(f"Scraping completed. Total players: {len(all_players)} across {page_number} pages")
         return all_players
 
-    def scrape_understat_data(self, data_type="both"):
+    def scrape_understat_data(self):
         """Main scraping function"""
         
-        # Detect if we're running in CI environment
-        is_ci = os.environ.get('GITHUB_ACTIONS') == 'true' or os.environ.get('CI') == 'true'
-        logging.info(f"Running in CI environment: {is_ci}")
-        
-        # Force headless environment variables for CI
-        if is_ci:
-            os.environ['PLAYWRIGHT_BROWSERS_PATH'] = os.environ.get('PLAYWRIGHT_BROWSERS_PATH', '/home/runner/.cache/ms-playwright')
-            os.environ['DISPLAY'] = ':99'
-            os.environ['PLAYWRIGHT_HEADLESS'] = '1'
-        
-        logging.info("Environment configured for headless browsing")
-        
         with sync_playwright() as p:
-            # Configure browser launch options based on environment
-            launch_options = {
-                'headless': True,  # Always headless
-                'args': [
-                    '--no-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-gpu',
-                    '--disable-web-security',
-                    '--disable-features=VizDisplayCompositor',
-                    '--disable-setuid-sandbox',
-                    '--disable-extensions',
-                    '--disable-plugins',
-                    '--disable-images',
-                    '--no-first-run',
-                    '--no-default-browser-check',
-                    '--disable-background-timer-throttling',
-                    '--disable-backgrounding-occluded-windows',
-                    '--disable-renderer-backgrounding'
-                ]
-            }
-            
-            # Additional CI-specific options
-            if is_ci:
-                launch_options['args'].extend([
-                    '--virtual-time-budget=5000',
-                    '--run-all-compositor-stages-before-draw',
-                    '--disable-background-networking',
-                    '--disable-default-apps',
-                    '--disable-sync'
-                ])
-            
-            logging.info(f"Browser launch options: headless={launch_options['headless']}")
-            logging.info(f"Browser args: {launch_options['args'][:5]}... (truncated)")
-            
-            try:
-                logging.info("Attempting to launch browser...")
-                browser = p.chromium.launch(**launch_options)
-                logging.info("✓ Browser launched successfully")
-            except Exception as e:
-                logging.error(f"Failed to launch browser with standard config: {e}")
-                # Fallback: Try with minimal configuration
-                logging.info("Attempting fallback browser configuration...")
-                try:
-                    browser = p.chromium.launch(
-                        headless=True,
-                        args=['--no-sandbox', '--disable-dev-shm-usage']
-                    )
-                    logging.info("✓ Fallback browser launch successful")
-                except Exception as e2:
-                    logging.error(f"Fallback browser launch also failed: {e2}")
-                    # Last resort: try Firefox instead
-                    logging.info("Attempting Firefox as last resort...")
-                    try:
-                        browser = p.firefox.launch(headless=True)
-                        logging.info("✓ Firefox browser launch successful")
-                    except Exception as e3:
-                        logging.error(f"Firefox launch also failed: {e3}")
-                        raise Exception(f"All browser launch attempts failed. Original: {e}, Chromium fallback: {e2}, Firefox: {e3}")
-            
-            # Create new context with user agent
-            context = browser.new_context(
-                user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            browser = p.chromium.launch(
+                headless=True,
+                args=['--no-sandbox', '--disable-dev-shm-usage']
             )
-            page = context.new_page()
+            
+            page = browser.new_page()
             
             try:
                 # Navigate to understat EPL page
@@ -378,68 +264,63 @@ class FPLScraper:
                 # Configure table to show all columns
                 self.configure_table_columns(page)
                 
-                if data_type in ["both", "season"]:
-                    logging.info("=== SCRAPING SEASON DATA ===")
-                    season_players = self.scrape_players_table(page, is_season_data=True)
-                    
-                    if season_players:
-                        season_columns = ["Player", "Team", "Minutes", "NpGI90", "xA90", "NPxG90_xA90", "xGChain90", "xGBuildup90"]
-                        self.save_to_csv(season_players, "data/season_stats.csv", season_columns)
-                        logging.info(f"Season data saved: {len(season_players)} players")
-                    else:
-                        logging.warning("No season data extracted")
+                logging.info("=== SCRAPING SEASON DATA ===")
+                season_players = self.scrape_players_table(page, is_season_data=True)
                 
-                if data_type in ["both", "form"]:
-                    logging.info("=== SCRAPING FORM DATA (5 games) ===")
+                if season_players:
+                    season_columns = ["Player", "Team", "Minutes", "NpGI90", "xA90", "NPxG90_xA90", "xGChain90", "xGBuildup90"]
+                    self.save_to_csv(season_players, "data/season_stats.csv", season_columns)
+                    logging.info(f"Season data saved: {len(season_players)} players")
+                else:
+                    logging.warning("No season data extracted")
+                
+                logging.info("=== SCRAPING FORM DATA (5 games) ===")
+                
+                # Switch to 5 games view
+                all_buttons = page.get_by_text("All")
+                if all_buttons.count() > 3:
+                    all_buttons.nth(3).click()
+                    time.sleep(1)
                     
-                    # Switch to 5 games view
-                    all_buttons = page.get_by_text("All")
-                    if all_buttons.count() > 3:
-                        all_buttons.nth(3).click()
-                        time.sleep(1)
-                        
-                        # Select 5 games
-                        page.get_by_role("listitem").filter(has_text="5").first.click()
-                        time.sleep(2)
-                        
-                        logging.info("Switched to 5 games view")
-                        
-                        # Click the filter button to apply the view change
-                        try:
-                            filter_button = page.locator("#players-filter")
-                            if filter_button.count() > 0:
-                                filter_button.click()
-                                time.sleep(2)
-                                logging.info("Clicked players filter button")
-                            else:
-                                logging.warning("Players filter button not found")
-                        except Exception as e:
-                            logging.warning(f"Could not click players filter button: {e}")
-                        
-                        form_players = self.scrape_players_table(page, is_season_data=False)
-                        
-                        if form_players:
-                            form_columns = ["Player", "Team", "Minutes", "xA90", "NPxG90_xA90", "xGChain90", "xGBuildup90"]
-                            self.save_to_csv(form_players, "data/form_stats.csv", form_columns)
-                            logging.info(f"Form data saved: {len(form_players)} players")
+                    # Select 5 games
+                    page.get_by_role("listitem").filter(has_text="5").first.click()
+                    time.sleep(2)
+                    
+                    logging.info("Switched to 5 games view")
+                    
+                    # Click the filter button to apply the view change
+                    try:
+                        filter_button = page.locator("#players-filter")
+                        if filter_button.count() > 0:
+                            filter_button.click()
+                            time.sleep(2)
+                            logging.info("Clicked players filter button")
                         else:
-                            logging.warning("No form data extracted")
+                            logging.warning("Players filter button not found")
+                    except Exception as e:
+                        logging.warning(f"Could not click players filter button: {e}")
+                    
+                    form_players = self.scrape_players_table(page, is_season_data=False)
+                    
+                    if form_players:
+                        form_columns = ["Player", "Team", "Minutes", "xA90", "NPxG90_xA90", "xGChain90", "xGBuildup90"]
+                        self.save_to_csv(form_players, "data/form_stats.csv", form_columns)
+                        logging.info(f"Form data saved: {len(form_players)} players")
                     else:
-                        logging.warning("Could not find 'All' button for games filter")
+                        logging.warning("No form data extracted")
+                else:
+                    logging.warning("Could not find 'All' button for games filter")
                 
             except Exception as e:
                 logging.error(f"Scraping failed: {e}")
                 return False
             finally:
-                context.close()
                 browser.close()
         
         return True
 
 def main():
     """Main function"""
-    log_filename = setup_logging()
-    
     logging.info("=" * 60)
     logging.info("FPL UNIFIED SCRAPER STARTING")
     logging.info("=" * 60)
@@ -448,7 +329,7 @@ def main():
     
     try:
         # Scrape both season and form data
-        success = scraper.scrape_understat_data(data_type="both")
+        success = scraper.scrape_understat_data()
         
         if success:
             logging.info("=" * 60)
@@ -473,7 +354,6 @@ def main():
         logging.error(f"Fatal error: {e}")
         return False
     
-    logging.info(f"Log saved to: {log_filename}")
     return True
 
 if __name__ == "__main__":

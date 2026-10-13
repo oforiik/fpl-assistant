@@ -290,7 +290,7 @@ class FPLScraper:
         """Main scraping function"""
         
         with sync_playwright() as p:
-            # Configure browser for headless environment
+            # Configure browser for GitHub Actions CI environment
             browser = p.chromium.launch(
                 headless=True,
                 args=[
@@ -298,10 +298,20 @@ class FPLScraper:
                     '--disable-dev-shm-usage',
                     '--disable-gpu',
                     '--disable-web-security',
-                    '--disable-features=VizDisplayCompositor'
+                    '--disable-features=VizDisplayCompositor',
+                    '--disable-background-timer-throttling',
+                    '--disable-backgrounding-occluded-windows',
+                    '--disable-renderer-backgrounding',
+                    '--no-zygote',
+                    '--single-process',
+                    '--disable-extensions'
                 ]
             )
-            page = browser.new_page()
+            context = browser.new_context(
+                viewport={'width': 1280, 'height': 720},
+                user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            )
+            page = context.new_page()
             
             try:
                 # Navigate to understat EPL page
@@ -367,6 +377,7 @@ class FPLScraper:
                 logging.error(f"Scraping failed: {e}")
                 return False
             finally:
+                context.close()
                 browser.close()
         
         return True

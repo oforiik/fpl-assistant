@@ -54,10 +54,6 @@ with tab2:
         # Store model in session state
         st.session_state.trained_model = model
         
-        # Model Summary
-        st.subheader("Model Summary")
-        st.text(str(model.summary()))
-        
         # Enhanced Model Diagnostics
         st.subheader("Model Diagnostics")
         
@@ -75,11 +71,6 @@ with tab2:
         with col4:
             st.metric("AIC/BIC", f"{model.aic:.1f}/{model.bic:.1f}",
                      help="Information criteria for model comparison")
-
-        # Training Data Summary
-        st.subheader("Training Data Summary")
-        training_summary = training_players[['Minutes', 'NpGI90', 'xA90', 'NPxG90_xA90', 'xGChain90', 'xGBuildup90']].describe()
-        st.dataframe(training_summary)
 
         # Assumption Checking Expandable Section
         with st.expander("Regression Assumption Checks", expanded=False):
@@ -149,11 +140,22 @@ with tab1:
             # Sort by rank
             df_ranked = form_with_minutes.sort_values(by='Rank')
             
-            # Search functionality
-            search_term = st.text_input("Search Player:")
+            # Search and filter functionality
+            col_search, col_minutes = st.columns([2, 1])
+            
+            with col_search:
+                search_term = st.text_input("Search Player:")
+            
+            with col_minutes:
+                min_minutes = st.number_input("Minimum Minutes Filter:", min_value=0, max_value=500, value=0, step=30, 
+                                            help="Filter out players with fewer minutes for cleaner view")
+            
+            # Apply filters
             filtered_df = df_ranked.copy()
             if search_term:
                 filtered_df = filtered_df[filtered_df['Player'].str.contains(search_term, case=False, na=False)]
+            if min_minutes > 0:
+                filtered_df = filtered_df[filtered_df['Minutes'] >= min_minutes]
             
             # Prepare display data
             display_df = filtered_df[[
@@ -165,43 +167,56 @@ with tab1:
             display_df['Predicted_NpGI90'] = display_df['Predicted_NpGI90'].round(3)
             
             # Display with conditional formatting
-            st.subheader(f"Player Rankings ({len(display_df)} players)")
+            if min_minutes > 0:
+                st.subheader(f"Player Rankings ({len(display_df)} of {len(df_ranked)} players - {min_minutes}+ minutes filter)")
+            else:
+                st.subheader(f"Player Rankings ({len(display_df)} players)")
             
-            # Prepare display data with color coding
-            display_for_show = display_df.drop('Low_Minutes', axis=1).copy()
-            
-            # Simple approach: Add a visual indicator instead of complex styling
-            display_for_show['Minutes_Status'] = display_df['Minutes'].apply(
-                lambda x: f"⚠️ {x}" if x < 180 else str(x)
-            )
-            display_for_show = display_for_show.drop('Minutes', axis=1)
-            
-            # Reorder columns
-            cols = ['Rank', 'Player', 'Team', 'Predicted_NpGI90', 'Minutes_Status', 
-                    'xA90', 'NPxG90_xA90', 'xGChain90', 'xGBuildup90']
-            display_for_show = display_for_show[cols]
-            
-            st.dataframe(display_for_show, height=600, use_container_width=True)
-            
-            # Legend and info
-            st.markdown(f"""
-            **Legend**: 
-            - ⚠️ **Warning symbol**: Players with <180 minutes ({minutes_source})
-            - **Predicted_NpGI90**: Predicted non-penalty goal involvements per 90 minutes based on last 5 games
-            - **Rankings**: Based on recent form (last 5 games) applied to season-trained model
-            - **Minutes_Status**: Minutes played ({minutes_source}) - ⚠️ indicates <180 minutes
-            """)
-            
-            # Summary statistics
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Total Players", len(df_ranked))
-            with col2:
-                low_min_count = (df_ranked['Minutes'] < 180).sum()
-                st.metric(f"Low Minutes Players (<180 {minutes_source})", low_min_count)
-            with col3:
-                avg_prediction = df_ranked['Predicted_NpGI90'].mean()
-                st.metric("Avg Predicted NpGI90", f"{avg_prediction:.3f}")
+            if len(display_df) == 0:
+                st.warning("No players match your current filters. Try reducing the minimum minutes or clearing the search.")
+            else:
+                # Prepare display data with color coding
+                display_for_show = display_df.drop('Low_Minutes', axis=1).copy()
+                
+                # Simple approach: Add a visual indicator instead of complex styling
+                display_for_show['Minutes_Status'] = display_df['Minutes'].apply(
+                    lambda x: f"⚠️ {x}" if x < 180 else str(x)
+                )
+                display_for_show = display_for_show.drop('Minutes', axis=1)
+                
+                # Reorder columns
+                cols = ['Rank', 'Player', 'Team', 'Predicted_NpGI90', 'Minutes_Status', 
+                        'xA90', 'NPxG90_xA90', 'xGChain90', 'xGBuildup90']
+                display_for_show = display_for_show[cols]
+                
+                st.dataframe(display_for_show, height=600, use_container_width=True)
+                
+                # Legend and info
+                st.markdown(f"""
+                **Legend**: 
+                - ⚠️ **Warning symbol**: Players with <180 minutes ({minutes_source})
+                - **Predicted_NpGI90**: Predicted non-penalty goal involvements per 90 minutes based on last 5 games
+                - **Rankings**: Based on recent form (last 5 games) applied to season-trained model
+                - **Minutes_Status**: Minutes played ({minutes_source}) - ⚠️ indicates <180 minutes
+                """)
+                
+                # Summary statistics
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    if min_minutes > 0:
+                        st.metric("Filtered Players", len(display_df))
+                    else:
+                        st.metric("Total Players", len(df_ranked))
+                with col2:
+                    if min_minutes > 0:
+                        low_min_count = (display_df['Minutes'] < 180).sum()
+                        st.metric(f"Low Minutes in View (<180)", low_min_count)
+                    else:
+                        low_min_count = (df_ranked['Minutes'] < 180).sum()
+                        st.metric(f"Low Minutes Players (<180)", low_min_count)
+                with col3:
+                    avg_prediction = display_df['Predicted_NpGI90'].mean()
+                    st.metric("Avg Predicted NpGI90", f"{avg_prediction:.3f}")
                 
         else:
             st.error("No form data available. Please check data/form_stats.csv")

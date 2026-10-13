@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 import time
 import logging
 import re
@@ -246,12 +247,9 @@ class FPLScraper:
         """Main scraping function"""
         
         with sync_playwright() as p:
-            browser = p.chromium.launch(
-                headless=True,
-                args=['--no-sandbox', '--disable-dev-shm-usage']
-            )
-            
-            page = browser.new_page()
+            browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"])
+            context = browser.new_context(user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36")
+            page = context.new_page()
             
             try:
                 # Navigate to understat EPL page
@@ -311,12 +309,27 @@ class FPLScraper:
                 else:
                     logging.warning("Could not find 'All' button for games filter")
                 
+                # Verify output files
+                if os.path.exists("data/season_stats.csv"):
+                    logging.info("✓ data/season_stats.csv: Created successfully")
+                else:
+                    logging.warning("✗ data/season_stats.csv: File not created")
+                
+                if os.path.exists("data/form_stats.csv"):
+                    logging.info("✓ data/form_stats.csv: Created successfully")  
+                else:
+                    logging.warning("✗ data/form_stats.csv: File not created")
+                
             except Exception as e:
                 logging.error(f"Scraping failed: {e}")
                 return False
             finally:
+                context.close()
                 browser.close()
         
+        logging.info("=" * 60)
+        logging.info("SCRAPING COMPLETED SUCCESSFULLY")
+        logging.info("=" * 60)
         return True
 
 def main():
@@ -325,36 +338,8 @@ def main():
     logging.info("FPL UNIFIED SCRAPER STARTING")
     logging.info("=" * 60)
     
-    scraper = FPLScraper()
-    
-    try:
-        # Scrape both season and form data
-        success = scraper.scrape_understat_data()
-        
-        if success:
-            logging.info("=" * 60)
-            logging.info("SCRAPING COMPLETED SUCCESSFULLY")
-            logging.info("=" * 60)
-            
-            # Verify output files
-            if os.path.exists("data/season_stats.csv"):
-                logging.info("✓ data/season_stats.csv: Created successfully")
-            else:
-                logging.warning("✗ data/season_stats.csv: File not created")
-            
-            if os.path.exists("data/form_stats.csv"):
-                logging.info("✓ data/form_stats.csv: Created successfully")  
-            else:
-                logging.warning("✗ data/form_stats.csv: File not created")
-                
-        else:
-            logging.error("Scraping failed")
-            
-    except Exception as e:
-        logging.error(f"Fatal error: {e}")
-        return False
-    
-    return True
+    ok = FPLScraper().scrape_understat_data()
+    sys.exit(0 if ok else 1)
 
 if __name__ == "__main__":
     main()

@@ -204,6 +204,13 @@ def run():
             if not form:
                 raise RuntimeError("No form data extracted")
             save_csv(form, "data/form_stats.csv", FORM_COLUMNS)
+        except Exception:
+            try:
+                page.screenshot(path="screenshot.png")
+                logging.info("Screenshot saved to screenshot.png")
+            except Exception:
+                pass
+            raise
         finally:
             browser.close()
 

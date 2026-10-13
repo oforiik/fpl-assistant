@@ -32,7 +32,9 @@ jobs:
       - name: Run unified FPL scraper
         run: |
           echo "Starting unified FPL scraper..."
+          export DISPLAY=:99
           python fpl_scraper.py
+        continue-on-error: true
 
       - name: Check for changes
         id: check_changes

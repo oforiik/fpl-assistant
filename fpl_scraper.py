@@ -290,7 +290,17 @@ class FPLScraper:
         """Main scraping function"""
         
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
+            # Configure browser for headless environment
+            browser = p.chromium.launch(
+                headless=True,
+                args=[
+                    '--no-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                    '--disable-web-security',
+                    '--disable-features=VizDisplayCompositor'
+                ]
+            )
             page = browser.new_page()
             
             try:

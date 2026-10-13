@@ -289,26 +289,80 @@ class FPLScraper:
     def scrape_understat_data(self, data_type="both"):
         """Main scraping function"""
         
+        # Detect if we're running in CI environment
+        is_ci = os.environ.get('GITHUB_ACTIONS') == 'true' or os.environ.get('CI') == 'true'
+        logging.info(f"Running in CI environment: {is_ci}")
+        
+        # Force headless environment variables for CI
+        if is_ci:
+            os.environ['PLAYWRIGHT_BROWSERS_PATH'] = os.environ.get('PLAYWRIGHT_BROWSERS_PATH', '/home/runner/.cache/ms-playwright')
+            os.environ['DISPLAY'] = ':99'
+            os.environ['PLAYWRIGHT_HEADLESS'] = '1'
+        
+        logging.info("Environment configured for headless browsing")
+        
         with sync_playwright() as p:
-            # Configure browser for GitHub Actions CI environment
-            browser = p.chromium.launch(
-                headless=True,
-                args=[
+            # Configure browser launch options based on environment
+            launch_options = {
+                'headless': True,  # Always headless
+                'args': [
                     '--no-sandbox',
                     '--disable-dev-shm-usage',
                     '--disable-gpu',
                     '--disable-web-security',
                     '--disable-features=VizDisplayCompositor',
+                    '--disable-setuid-sandbox',
+                    '--disable-extensions',
+                    '--disable-plugins',
+                    '--disable-images',
+                    '--no-first-run',
+                    '--no-default-browser-check',
                     '--disable-background-timer-throttling',
                     '--disable-backgrounding-occluded-windows',
-                    '--disable-renderer-backgrounding',
-                    '--no-zygote',
-                    '--single-process',
-                    '--disable-extensions'
+                    '--disable-renderer-backgrounding'
                 ]
-            )
+            }
+            
+            # Additional CI-specific options
+            if is_ci:
+                launch_options['args'].extend([
+                    '--virtual-time-budget=5000',
+                    '--run-all-compositor-stages-before-draw',
+                    '--disable-background-networking',
+                    '--disable-default-apps',
+                    '--disable-sync'
+                ])
+            
+            logging.info(f"Browser launch options: headless={launch_options['headless']}")
+            logging.info(f"Browser args: {launch_options['args'][:5]}... (truncated)")
+            
+            try:
+                logging.info("Attempting to launch browser...")
+                browser = p.chromium.launch(**launch_options)
+                logging.info("✓ Browser launched successfully")
+            except Exception as e:
+                logging.error(f"Failed to launch browser with standard config: {e}")
+                # Fallback: Try with minimal configuration
+                logging.info("Attempting fallback browser configuration...")
+                try:
+                    browser = p.chromium.launch(
+                        headless=True,
+                        args=['--no-sandbox', '--disable-dev-shm-usage']
+                    )
+                    logging.info("✓ Fallback browser launch successful")
+                except Exception as e2:
+                    logging.error(f"Fallback browser launch also failed: {e2}")
+                    # Last resort: try Firefox instead
+                    logging.info("Attempting Firefox as last resort...")
+                    try:
+                        browser = p.firefox.launch(headless=True)
+                        logging.info("✓ Firefox browser launch successful")
+                    except Exception as e3:
+                        logging.error(f"Firefox launch also failed: {e3}")
+                        raise Exception(f"All browser launch attempts failed. Original: {e}, Chromium fallback: {e2}, Firefox: {e3}")
+            
+            # Create new context with user agent
             context = browser.new_context(
-                viewport={'width': 1280, 'height': 720},
                 user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             )
             page = context.new_page()

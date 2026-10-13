@@ -18,31 +18,52 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            xvfb \
+            libnss3-dev \
+            libgconf-2-4 \
+            libxss1 \
+            libxtst6 \
+            libxrandr2 \
+            libasound2-dev \
+            libpangocairo-1.0-0 \
+            libatk1.0-dev \
+            libcairo-gobject2 \
+            libgtk-3-dev \
+            libgdk-pixbuf2.0-dev
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Install Playwright and browsers
+        run: |
           pip install playwright
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb
-
-      - name: Install Playwright Browsers
-        run: |
-          python -m playwright install chromium
-          python -m playwright install-deps
+          playwright install chromium firefox --with-deps
 
       - name: Run unified FPL scraper
         run: |
           echo "Starting unified FPL scraper..."
-          export PLAYWRIGHT_BROWSERS_PATH=/home/runner/.cache/ms-playwright
+          
+          # Set up virtual display
           export DISPLAY=:99
-          xvfb-run -a python fpl_scraper.py
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          
+          # Wait for Xvfb to start
+          sleep 3
+          
+          # Set CI environment variables
+          export CI=true
+          export GITHUB_ACTIONS=true
+          export PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright
+          
+          # Run the scraper
+          python fpl_scraper.py
         continue-on-error: true
-        env:
-          PLAYWRIGHT_HEADLESS: true
 
       - name: Check for changes
         id: check_changes
